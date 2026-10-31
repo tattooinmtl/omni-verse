@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Omniverse</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600&family=VT323&display=swap">
+<link rel="stylesheet" href="/work.css">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/screens.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="world"></canvas>
+
+<!-- Shared animated backdrop for the splash, the mode select and settings -->
+<div id="backdrop" aria-hidden="true">
+  <div class="bd-sky"></div>
+  <div class="bd-sun"></div>
+  <div class="bd-city"></div>
+  <div class="bd-floor"><div class="bd-grid"></div></div>
+  <div class="bd-scan"></div>
+</div>
+
+<div id="splash">
+  <div class="sp-mark">
+    <div class="sp-ring"><i></i><i></i><i></i></div>
+    <h1 class="sp-logo" data-text="OMNIVERSE">OMNIVERSE</h1>
+    <p class="sp-tag">a living city built from your code</p>
+  </div>
+  <div class="sp-load">
+    <div class="sp-bar"><span id="spFill"></span></div>
+    <div class="sp-meta"><span id="spStep">Booting the grid…</span><span id="spPct">0%</span></div>
+    <ol id="spLog"></ol>
+  </div>
+  <div id="spGo" hidden>PRESS ANY KEY TO JACK IN</div>
+  <footer class="sp-foot"><span id="spInfo"></span><span>v0.2 · local · 127.0.0.1</span></footer>
+</div>
+
+<div id="modes" hidden>
+  <header class="md-head">
+    <h1 class="md-logo">OMNIVERSE</h1>
+    <p id="mdStatus" class="md-status"></p>
+  </header>
+  <nav id="modeList" class="md-list"></nav>
+  <aside id="modeInfo" class="md-info"></aside>
+  <footer class="md-foot"><span>↑ ↓ choose · Enter select · 1–5 shortcuts</span><span id="mdKeys"></span></footer>
+</div>
+
+<div id="settings" hidden>
+  <header class="st-head">
+    <button id="stBack" class="btn small">◀ Back</button>
+    <h2>SETTINGS</h2>
+    <span id="stSaved" class="st-saved"></span>
+    <span class="st-actions"><button id="stReset" class="btn small">Reset section</button><button id="stSave" class="btn primary small">Save</button></span>
+  </header>
+  <div class="st-body">
+    <nav id="stTabs" class="st-tabs"></nav>
+    <section id="stPane" class="st-pane"></section>
+  </div>
+</div>
+
+<div id="gate" hidden>
+  <header class="gate-head">
+    <button id="gateBack" class="btn small">◀ Menu</button>
+    <div>
+      <h1>AGENT GATE</h1>
+      <p class="sub">Every agent forges its own avatar before it may enter the city</p>
+    </div>
+  </header>
+  <div class="gate-grid">
+    <section class="col">
+      <h2>Agents</h2>
+      <label class="hint">Theme suggestion <span>(optional — the agent decides)</span>
+        <input id="hint" maxlength="200" placeholder="e.g. something from the deep sea">
+      </label>
+      <div id="providerList"></div>
+      <button id="forgeAll" class="btn wide">Forge every keyed agent</button>
+      <p class="note" id="keyNote"></p>
+    </section>
+    <section class="col preview">
+      <canvas id="previewCanvas"></canvas>
+      <div id="previewInfo"><p class="muted">Forge an agent to see its avatar.</p></div>
+    </section>
+    <section class="col">
+      <h2>Forged avatars</h2>
+      <div id="roster"></div>
+    </section>
+  </div>
+  <footer>
+    <span id="worldNote">Scanning projects…</span>
+    <span class="foot-btns"><button id="gateStats" class="btn">◉ Stats</button>
+    <button id="enterBtn" class="btn primary" disabled>Enter the Omniverse</button></span>
+  </footer>
+</div>
+
+<div id="hud" hidden>
+  <div id="crosshair"></div>
+  <div id="hudTop">
+    <span id="modeTag" class="tag">WALK</span>
+    <span id="locTag" class="tag">Street</span>
+    <span id="selfTag" class="tag"></span>
+    <button id="walletTag" class="tag btn-tag" title="Inventory (I)" hidden></button>
+  </div>
+  <div id="objective" hidden></div>
+  <div id="hudRight">
+    <span id="agentsTag" class="tag"></span>
+    <button id="lifeTag" class="tag btn-tag" title="Pause or resume the agents' life (houses, meetings)">LIFE …</button>
+    <button id="workTag" class="tag btn-tag work" title="Jobs: who is clocked in, what is running">WORK …</button>
+    <button id="statsBtn" class="tag btn-tag stats" title="Neural map and wiki of everything the agents did (N)">◉ STATS</button>
+  </div>
+  <div id="feed"></div>
+  <div id="prompt" hidden></div>
+  <div id="gather" hidden>
+    <svg viewBox="0 0 120 120"><circle class="g-track" cx="60" cy="60" r="50"/><circle id="gatherArc" class="g-arc" cx="60" cy="60" r="50"/></svg>
+    <div class="g-text"><b id="gatherKind"></b><span id="gatherTime"></span></div>
+  </div>
+  <div id="toasts"></div>
+  <div id="help">WASD move · Mouse look · Space jump / up · C down · Shift run / boost · <b>F</b> fly · <b>E</b> interact / gather · <b>I</b> inventory · V 3rd person · <b>N</b> stats · Esc release</div>
+</div>
+
+<div id="resume" hidden><div><h2>OMNIVERSE</h2><p>Click to enter the grid</p><button id="toMenu" class="btn small">◀ Main menu</button></div></div>
+
+<div id="panel" hidden>
+  <div class="panel-head"><h3 id="panelTitle"></h3><button id="panelClose" class="btn small">Close ✕</button></div>
+  <div id="panelBody"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Barrel distortion for the terminal glass; the map is drawn by work.js. -->
+  <filter id="crt-barrel" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feImage id="crtMap" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div id="terminal" hidden>
+  <div class="t-bezel">
+    <div class="t-screen">
+      <div class="t-status"></div>
+      <div class="t-out"></div>
+      <div class="t-more">▼ MORE</div>
+      <div class="t-hint">↑↓ ENTER · TAB BACK · ESC OFF</div>
+    </div>
+  </div>
+</div>
+
+<div id="neural" hidden>
+  <canvas id="neuralCanvas"></canvas>
+  <div id="nTop">
+    <span class="tag" id="nLayer">GLOBAL LAYER</span>
+    <button class="tag btn-tag" id="nBack" hidden>◀ Global</button>
+    <button class="tag btn-tag" id="nWikiBtn">☰ Wiki</button>
+    <button class="tag btn-tag" id="nClose">Close ✕</button>
+  </div>
+  <div id="nCross"></div>
+  <div id="nTip" hidden></div>
+  <aside id="nInfo" hidden></aside>
+  <aside id="nWiki" hidden></aside>
+  <div id="nLegend"></div>
+  <div id="nHelp">WASD fly · Mouse aim (click the void to capture, Esc to release) · Space / C up / down · Shift boost · Click a node to open it</div>
+</div>
+
+<script type="module" src="/main.js"></script>
+</body>
+</html>

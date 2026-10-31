@@ -1,0 +1,11 @@
+{
+  "name": "omni-verse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Omniverse: a TRON-style city where agents build their knowledge into skyscrapers.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
