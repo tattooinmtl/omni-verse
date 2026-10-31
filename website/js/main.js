@@ -34,6 +34,8 @@ scenes.forEach((s, i) => {
   li.style.top = `${(i / (scenes.length - 1)) * 100}%`;
   ticks.append(li);
 });
+// French or English, from /legal/gwn-lang.js; English when it is absent (`npm run site`).
+const tr = (key, en) => (globalThis.GWN_LANG ? globalThis.GWN_LANG.t(key, en) : en);
 const hudSector = $(".hud-sector"), hudAlt = $(".hud-alt"), hudLabel = $(".hud-label");
 const navLinks = [...document.querySelectorAll(".top nav a")];
 let lastSector = -1;
@@ -44,8 +46,8 @@ function hud(x, alt) {
   if (sector === lastSector) return;
   lastSector = sector;
   [...ticks.children].forEach((li, i) => li.classList.toggle("on", i <= sector));
-  hudSector.textContent = `SECTOR ${String(sector + 1).padStart(2, "0")}`;
-  hudLabel.textContent = scenes[sector].dataset.label;
+  hudSector.textContent = `${tr("hud.sector", "SECTOR")} ${String(sector + 1).padStart(2, "0")}`;
+  hudLabel.textContent = tr(`hud.${scenes[sector].id}`, scenes[sector].dataset.label);
   const id = scenes[sector].id;
   navLinks.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${id}`));
 }
@@ -73,12 +75,16 @@ const forge = createForge($("#forge"), RESIDENTS, {
 $(".forge-nav.next").addEventListener("click", () => forge.next());
 $(".forge-nav.prev").addEventListener("click", () => forge.prev());
 const specBtn = $("#spec-toggle");
+const specLabel = () => { specBtn.textContent = $("#spec").hidden ? tr("spec.show", "View the JSON it wrote") : tr("spec.hide", "Hide the JSON"); };
 specBtn.addEventListener("click", () => {
   const open = $("#spec").hidden;
   $("#spec").hidden = !open;
   specBtn.setAttribute("aria-expanded", String(open));
-  specBtn.textContent = open ? "Hide the JSON" : "View the JSON it wrote";
+  specLabel();
 });
+specLabel();
+// A language switch redraws the text set from here.
+window.addEventListener("gwn:lang", () => { lastSector = -1; specLabel(); });
 
 const neural = createNeural($("#neuralmap"), $(".neural-tip"), RESIDENTS.map((r) => r.spec.name), { still });
 

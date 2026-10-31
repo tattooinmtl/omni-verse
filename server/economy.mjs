@@ -69,7 +69,7 @@ function load() {
 }
 // Written to a tmp file then renamed, so a crash mid-write can't leave a torn
 // economy.json; a locked file (antivirus, OneDrive) is retried, not fatal.
-function flush() {
+export function flush() {
   if (!dirty) return;
   dirty = false;
   try {
@@ -81,8 +81,7 @@ function flush() {
 const touch = () => { dirty = true; };
 export const touchWallets = touch;
 setInterval(flush, 3000).unref();
-for (const sig of ["SIGINT", "SIGTERM"]) process.once(sig, () => { flush(); process.exit(0); });
-process.once("beforeExit", flush);
+process.once("beforeExit", flush); // Ctrl+C and the tray's Exit go through shutdown() in server.mjs
 
 const uid = (p) => `${p}${(++st.seq).toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 const rand = (a, b) => a + Math.random() * (b - a);

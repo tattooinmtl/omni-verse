@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server/server.mjs",
-    "site": "node website/serve.mjs"
+    "site": "node website/serve.mjs",
+    "tray": "wscript \"Start Omniverse.vbs\""
   },
   "engines": {
     "node": ">=20"

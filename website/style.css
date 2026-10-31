@@ -39,6 +39,7 @@ code { font: 20px VT323, ui-monospace, monospace; color: var(--green); }
 .top nav a.nav-cta:hover { color: #001018; background: #8ff4ff; text-shadow: none; }
 .top nav a.nav-acct { color: var(--text); border: 1px solid var(--line); padding: 6px 12px; }
 .top nav a.nav-acct:hover { border-color: var(--cyan); }
+.top nav .nav-lang { color: var(--cyan); }
 
 /* ── progress rail and HUD ───────────────────────── */
 .rail { position: fixed; right: clamp(12px, 2vw, 26px); top: 50%; transform: translateY(-50%); z-index: 5; height: 46vh; width: 14px; }

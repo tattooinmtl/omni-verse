@@ -13,31 +13,31 @@ if (is_post()) {
 }
 $apps = omv_connected_apps($uid);
 
-page_head('Your account — Omniverse');
+page_head(tr('Your account — Omniverse', 'Votre compte — Omniverse'));
 ?>
 <section class="panel in narrow">
-  <p class="tag">Omni account</p>
-  <h2><?= e($u['name'] ?: 'Your account') ?></h2>
+  <p class="tag"><?= e(tr('Omni account', 'Compte Omni')) ?></p>
+  <h2><?= e($u['name'] ?: tr('Your account', 'Votre compte')) ?></h2>
   <dl class="kv">
-    <dt>Email</dt><dd><?= e($u['email']) ?></dd>
-    <dt>Member since</dt><dd><?= e(substr((string) ($u['joined_at'] ?? $u['created_at'] ?? ''), 0, 10)) ?></dd>
+    <dt><?= e(tr('Email', 'Courriel')) ?></dt><dd><?= e($u['email']) ?></dd>
+    <dt><?= e(tr('Member since', 'Membre depuis')) ?></dt><dd><?= e(substr((string) ($u['joined_at'] ?? $u['created_at'] ?? ''), 0, 10)) ?></dd>
   </dl>
-  <p class="fine">Name, email and password are shared by every Omni product; change them on <a href="<?= e(omnione_url('/profile.php')) ?>">your OmniOne profile</a>.</p>
+  <p class="fine"><?= tr('Name, email and password are shared by every Omni product; change them on', 'Le nom, le courriel et le mot de passe sont communs à tous les produits Omni; modifiez-les dans') ?> <a href="<?= e(omnione_url('/profile.php')) ?>"><?= e(tr('your OmniOne profile', 'votre profil OmniOne')) ?></a>.</p>
 
-  <h3 class="sub-h">Connected Omniverse apps</h3>
+  <h3 class="sub-h"><?= e(tr('Connected Omniverse apps', 'Applications Omniverse branchées')) ?></h3>
   <?php if (!$apps): ?>
-    <p>None yet. In the Omniverse app, open <b>Settings → Account</b> and choose <b>Sign in</b>.</p>
+    <p><?= tr('None yet. In the Omniverse app, open <b>Settings → Account</b> and choose <b>Sign in</b>.', 'Aucune pour l’instant. Dans l’application Omniverse, ouvrez <b>Settings → Account</b> et choisissez <b>Sign in</b>.') ?></p>
   <?php else: ?>
     <ul class="apps">
       <?php foreach ($apps as $a): ?>
         <li>
           <div>
-            <b><?= e($a['device_name'] ?: 'Unnamed PC') ?></b>
-            <span class="fine"><?= e($a['device_os'] ?: '') ?><?= $a['app_version'] ? ' · v' . e($a['app_version']) : '' ?> · last seen <?= e(substr((string) $a['last_used_at'], 0, 16)) ?> UTC</span>
+            <b><?= e($a['device_name'] ?: tr('Unnamed PC', 'PC sans nom')) ?></b>
+            <span class="fine"><?= e($a['device_os'] ?: '') ?><?= $a['app_version'] ? ' · v' . e($a['app_version']) : '' ?> · <?= e(tr('last seen', 'vu pour la dernière fois le')) ?> <?= e(substr((string) $a['last_used_at'], 0, 16)) ?> UTC</span>
           </div>
           <form method="post" action="/account.php">
             <?= csrf_field() ?>
-            <button class="btn small" type="submit" name="revoke" value="<?= (int) $a['id'] ?>">Disconnect</button>
+            <button class="btn small" type="submit" name="revoke" value="<?= (int) $a['id'] ?>"><?= e(tr('Disconnect', 'Débrancher')) ?></button>
           </form>
         </li>
       <?php endforeach; ?>
@@ -46,7 +46,7 @@ page_head('Your account — Omniverse');
 
   <form method="post" action="/logout.php" class="form-row" style="margin-top:24px">
     <?= csrf_field() ?>
-    <button class="btn" type="submit">Sign out</button>
+    <button class="btn" type="submit"><?= e(tr('Sign out', 'Se déconnecter')) ?></button>
   </form>
 </section>
 <?php page_foot();

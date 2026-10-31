@@ -64,6 +64,16 @@ npm start
 
 Then open http://localhost:4777. You need Node 20 or newer; there are no npm dependencies, and three.js loads from jsDelivr.
 
+**On Windows, run it from the tray:** double-click **`Start Omniverse.vbs`** (or `npm run tray`). The server starts in the background with no console window, the city opens in your browser, and the Omniverse diamond appears in the system tray. Closing the browser doesn't stop anything: the server keeps running, and is restarted if it crashes, until you choose **Exit Omniverse** in the tray menu, which saves everything and stops it. Left-click the diamond to open the city; right-click for the menu:
+
+- Open Omniverse · Open the website
+- Pause / Resume the simulation
+- Restart the server · Show the server log (`data/server.log`) · Open the app folder
+- Start with Windows (a shortcut in your Startup folder; it starts quietly, without opening the browser)
+- Exit Omniverse
+
+Starting it a second time just opens the city. The tray uses only what Windows has built in (PowerShell and Windows Forms).
+
 ## Your projects become the city
 
 On first start the **project picker** opens by itself (later: Settings → Projects). It lists every project it finds on your computer: folders with a `.git`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, a `.sln` and the like, in your home folder, `dev`, `source`, `projects`, `repos`, `code`, `Documents/GitHub`, the Desktop and the top level of every drive, two levels deep. Each shows its kind and when it last changed; search, tick what you want (up to 300), or add any folder by path, then **Build the city**. Until you pick, the city shows your 40 most recently changed projects.

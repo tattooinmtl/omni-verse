@@ -27,41 +27,44 @@ if (is_post()) {
 }
 $pending = $done ? null : ($code !== '' ? omv_device_code_pending($code) : null);
 
-page_head('Connect the Omniverse app — Omniverse');
+page_head(tr('Connect the Omniverse app — Omniverse', 'Brancher l’application Omniverse — Omniverse'));
 ?>
 <section class="panel in narrow">
-  <p class="tag">Connect</p>
-  <h2>Connect the Omniverse app</h2>
+  <p class="tag"><?= e(tr('Connect', 'Brancher')) ?></p>
+  <h2><?= e(tr('Connect the Omniverse app', 'Brancher l’application Omniverse')) ?></h2>
   <?php if ($done === 'approved'): ?>
-    <p class="ok-line">✓ Connected.</p>
-    <p>Go back to the Omniverse; it signs in by itself within a few seconds. You can close this tab. To disconnect later, use <b>Sign out</b> in the app or your <a href="/account.php">account page</a>.</p>
+    <p class="ok-line">✓ <?= e(tr('Connected.', 'Branchée.')) ?></p>
+    <p><?= tr(
+        'Go back to the Omniverse; it signs in by itself within a few seconds. You can close this tab. To disconnect later, use <b>Sign out</b> in the app or your <a href="/account.php">account page</a>.',
+        'Retournez dans l’Omniverse; il se connecte tout seul en quelques secondes. Vous pouvez fermer cet onglet. Pour le débrancher plus tard, utilisez <b>Sign out</b> dans l’application ou la <a href="/account.php">page de votre compte</a>.'
+    ) ?></p>
   <?php elseif ($done === 'denied'): ?>
-    <p>Declined. Nothing was connected.</p>
+    <p><?= e(tr('Declined. Nothing was connected.', 'Refusé. Rien n’a été branché.')) ?></p>
   <?php else: ?>
     <?= form_error($err) ?>
     <?php if ($pending): ?>
-      <p>Check that the Omniverse app shows this same code, and that you started this on your own computer.</p>
+      <p><?= e(tr('Check that the Omniverse app shows this same code, and that you started this on your own computer.', 'Vérifiez que l’application Omniverse affiche ce même code et que c’est bien vous qui avez lancé cette demande, sur votre propre ordinateur.')) ?></p>
       <div class="code-box"><?= e($pending['user_code']) ?></div>
       <dl class="kv">
-        <dt>Computer</dt><dd><?= e($pending['device_name'] ?: 'Unnamed PC') ?></dd>
-        <dt>System</dt><dd><?= e($pending['device_os'] ?: '—') ?></dd>
+        <dt><?= e(tr('Computer', 'Ordinateur')) ?></dt><dd><?= e($pending['device_name'] ?: tr('Unnamed PC', 'PC sans nom')) ?></dd>
+        <dt><?= e(tr('System', 'Système')) ?></dt><dd><?= e($pending['device_os'] ?: '—') ?></dd>
         <dt>Omniverse</dt><dd><?= e($pending['app_version'] ? 'v' . $pending['app_version'] : '—') ?></dd>
-        <dt>Account</dt><dd><?= e($u['name']) ?> · <?= e($u['email']) ?></dd>
+        <dt><?= e(tr('Account', 'Compte')) ?></dt><dd><?= e($u['name']) ?> · <?= e($u['email']) ?></dd>
       </dl>
-      <p class="fine">Approving lets this copy of the Omniverse show who is signed in. It never gets your password.</p>
+      <p class="fine"><?= e(tr('Approving lets this copy of the Omniverse show who is signed in. It never gets your password.', 'Approuver permet à cette copie de l’Omniverse d’afficher qui est connecté. Elle n’obtient jamais votre mot de passe.')) ?></p>
       <form method="post" action="/connect.php" class="form-row">
         <?= csrf_field() ?>
         <input type="hidden" name="code" value="<?= e($pending['user_code']) ?>">
-        <button class="btn primary" type="submit" name="decision" value="approve">Approve</button>
-        <button class="btn" type="submit" name="decision" value="deny">Decline</button>
+        <button class="btn primary" type="submit" name="decision" value="approve"><?= e(tr('Approve', 'Approuver')) ?></button>
+        <button class="btn" type="submit" name="decision" value="deny"><?= e(tr('Decline', 'Refuser')) ?></button>
       </form>
-      <p class="fine">Didn’t start this yourself? Decline it.</p>
+      <p class="fine"><?= e(tr('Didn’t start this yourself? Decline it.', 'Ce n’est pas vous qui avez lancé cette demande? Refusez-la.')) ?></p>
     <?php else: ?>
-      <?php if ($code !== '' && !$err): ?><div class="flash flash--error">That code has expired or was already used. Start again from the Omniverse app.</div><?php endif; ?>
-      <p>Enter the code the Omniverse app shows you.</p>
+      <?php if ($code !== '' && !$err): ?><?= form_error('That code has expired or was already used. Start again from the Omniverse app.') ?><?php endif; ?>
+      <p><?= e(tr('Enter the code the Omniverse app shows you.', 'Entrez le code que l’application Omniverse vous affiche.')) ?></p>
       <form class="form" method="get" action="/connect.php">
-        <label>Code<input name="code" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" required autofocus></label>
-        <div class="form-row"><button class="btn primary" type="submit">Continue</button></div>
+        <label><?= e(tr('Code', 'Code')) ?><input name="code" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" required autofocus></label>
+        <div class="form-row"><button class="btn primary" type="submit"><?= e(tr('Continue', 'Continuer')) ?></button></div>
       </form>
     <?php endif; ?>
   <?php endif; ?>

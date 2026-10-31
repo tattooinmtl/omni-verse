@@ -2,12 +2,16 @@
 // small synapses wired to the agents they involve, and bonds between agents
 // are violet links. Signals run along the links. Drawn on a 2D canvas.
 
+// French or English, from /legal/gwn-lang.js; English when it is absent (`npm run site`).
+const tr = (key, en) => (globalThis.GWN_LANG ? globalThis.GWN_LANG.t(key, en) : en);
+const fill = (s, a) => s.replace(/\{(\d)\}/g, (_, n) => a[n]);
+
 const KINDS = [
-  { type: "build", color: "#22e6ff", say: (a) => `${a[0]} added a floor to their home` },
-  { type: "meet", color: "#9b6bff", say: (a) => `${a[0]} and ${a[1]} talked on the street` },
-  { type: "visit", color: "#ff3df2", say: (a) => `${a[0]} visited ${a[1]}'s house` },
-  { type: "trade", color: "#39ff88", say: (a) => `${a[1]} bought scrap at ${a[0]}'s kiosk` },
-  { type: "craft", color: "#ffe14d", say: (a) => `${a[0]} crafted a decoration` },
+  { type: "build", color: "#22e6ff", say: (a) => fill(tr("neural.build", "{0} added a floor to their home"), a) },
+  { type: "meet", color: "#9b6bff", say: (a) => fill(tr("neural.meet", "{0} and {1} talked on the street"), a) },
+  { type: "visit", color: "#ff3df2", say: (a) => fill(tr("neural.visit", "{0} visited {1}'s house"), a) },
+  { type: "trade", color: "#39ff88", say: (a) => fill(tr("neural.trade", "{1} bought scrap at {0}'s kiosk"), a) },
+  { type: "craft", color: "#ffe14d", say: (a) => fill(tr("neural.craft", "{0} crafted a decoration"), a) },
 ];
 
 export function createNeural(canvas, tip, names, { still = false } = {}) {
@@ -28,7 +32,8 @@ export function createNeural(canvas, tip, names, { still = false } = {}) {
     let b = hubs[Math.floor(rand() * hubs.length)];
     if (b === a) b = hubs[(hubs.indexOf(a) + 1) % hubs.length];
     const pair = kind.type === "build" || kind.type === "craft" ? [a] : [a, b];
-    const n = { kind: "event", name: kind.say(pair.map((h) => h.name)), type: kind.type, x: a.x + (rand() - 0.5) * 0.3, y: a.y + (rand() - 0.5) * 0.3, r: 2 + rand() * 1.6, color: kind.color };
+    const names = pair.map((h) => h.name);
+    const n = { kind: "event", say: () => kind.say(names), type: kind.type, x: a.x + (rand() - 0.5) * 0.3, y: a.y + (rand() - 0.5) * 0.3, r: 2 + rand() * 1.6, color: kind.color };
     nodes.push(n);
     for (const h of pair) { links.push({ a: n, b: h, color: kind.color, w: 0.7 }); h.deg++; }
   }
@@ -133,7 +138,7 @@ export function createNeural(canvas, tip, names, { still = false } = {}) {
         ctx.fillStyle = !lit || lit.has(h) ? "#ffd29a" : "rgba(255,210,154,0.2)";
         ctx.fillText(h.name.toUpperCase(), x, y - h.r - 6);
       }
-      const text = hover ? (hover.kind === "hub" ? `${hover.name} · ${hover.deg} memories` : hover.name) : "Hover a node";
+      const text = hover ? (hover.kind === "hub" ? `${hover.name} · ${hover.deg} ${tr("neural.memories", "memories")}` : hover.say()) : tr("neural.hover", "Hover a node");
       if (tip.textContent !== text) tip.textContent = text;
     },
   };

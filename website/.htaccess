@@ -8,9 +8,15 @@ Options -Indexes
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
   # Private code, config and setup files are never served.
   RewriteRule ^(_private|_setup)(/|$) - [F,L]
+  # Short addresses for the shared legal page of every Omni product.
+  RewriteRule ^(disclaimer|disclamer|terms|eula)/?$ /legal/ [R=301,L]
+  RewriteRule ^(privacy|cookies)/?$ /legal/#privacy [R=301,NE,L]
   # /api/auth/device/start → api/index.php?r=auth/device/start
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^api/(.*)$ api/index.php?r=$1 [QSA,L]
+</IfModule>
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
 </IfModule>
 <FilesMatch "^\.">
   Require all denied

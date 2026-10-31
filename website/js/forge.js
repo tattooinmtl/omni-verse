@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { buildAvatar } from "./avatar.js";
 
+// French or English, from /legal/gwn-lang.js; English when it is absent (`npm run site`).
+const tr = (key, en) => (globalThis.GWN_LANG ? globalThis.GWN_LANG.t(key, en) : en);
+
 // The Residents viewer: one agent at a time on a lit pedestal, turned by drag,
 // with the JSON it wrote shown on demand. onSelect tells the city which
 // resident to project inside the Agent Gate.
@@ -44,7 +47,7 @@ export function createForge(canvas, residents, ui, { onSelect = () => {}, still 
     current = cache.get(i);
     holder.add(current);
     ringMat.color.set(glow).multiplyScalar(1.4);
-    ui.count.textContent = `RESIDENT ${String(i + 1).padStart(2, "0")} / ${String(residents.length).padStart(2, "0")}`;
+    ui.count.textContent = `${tr("forge.count", "RESIDENT")} ${String(i + 1).padStart(2, "0")} / ${String(residents.length).padStart(2, "0")}`;
     ui.name.textContent = s.name;
     ui.name.style.color = glow;
     ui.name.style.textShadow = `0 0 16px ${glow}`;
@@ -52,11 +55,12 @@ export function createForge(canvas, residents, ui, { onSelect = () => {}, still 
     ui.motto.textContent = `“${s.motto}”`;
     ui.motto.style.color = s.palette.primary;
     ui.desc.textContent = s.description;
-    ui.model.textContent = `designed by ${r.provider} · ${r.model}`;
+    ui.model.textContent = `${tr("forge.by", "designed by")} ${r.provider} · ${r.model}`;
     ui.spec.innerHTML = highlight(JSON.stringify(s, null, 2));
     onSelect(i);
   }
 
+  window.addEventListener("gwn:lang", () => { if (current) select(i); });
   canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX }; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener("pointermove", (e) => {
     if (!drag) return;

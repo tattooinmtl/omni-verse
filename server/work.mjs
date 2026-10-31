@@ -35,7 +35,7 @@ function load() {
     return { jobs: s.jobs || [], shifts: s.shifts || {}, blocks: s.blocks || [], chat: s.chat || [], seq: s.seq || 0 };
   } catch { return { jobs: [], shifts: {}, blocks: [], chat: [], seq: 0 }; }
 }
-function flush() {
+export function flush() {
   if (!dirty) return;
   dirty = false;
   try {
@@ -46,8 +46,7 @@ function flush() {
 }
 const touch = () => { dirty = true; };
 setInterval(flush, 2000).unref();
-for (const sig of ["SIGINT", "SIGTERM"]) process.once(sig, () => { flush(); });
-process.once("beforeExit", flush);
+process.once("beforeExit", flush); // Ctrl+C and the tray's Exit go through shutdown() in server.mjs
 
 let version = 1; // bumped on every change the client should redraw
 const bump = () => { version++; touch(); };

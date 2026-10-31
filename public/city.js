@@ -1,6 +1,16 @@
 import * as THREE from "three";
 import { disposeObject, makeLabel } from "./labels.js";
 import { buildHouse } from "./house.js";
+
+// Shared by every interior and never disposed, so their shaders stay compiled.
+const sharedMat = (m) => { m.userData.shared = true; return m; };
+const sharedGeo = (g) => { g.userData.shared = true; return g; };
+const INTERIOR_MATS = {
+  rooms: sharedMat(new THREE.LineBasicMaterial({ vertexColors: true })),
+  terminal: sharedMat(new THREE.MeshBasicMaterial()),
+  elevator: sharedMat(new THREE.MeshBasicMaterial({ color: new THREE.Color("#e8fbff").multiplyScalar(1.4) })),
+};
+const INTERIOR_GEO = { terminal: sharedGeo(new THREE.BoxGeometry(1.1, 1.5, 0.3)), elevator: sharedGeo(new THREE.BoxGeometry(2.4, 3.2, 0.2)) };
 import * as layoutMath from "./layout.js";
 import { DOOR_H, DOOR_W, FH, LOT, ROOM, STREET, WALL, computeLayout } from "./layout.js";
 
@@ -39,6 +49,23 @@ export class City {
     this.buildDistrictGates();
     this.buildCycles();
     this.buildLots();
+    this.buildWarmup();
+  }
+
+  // One tiny copy of each interior piece, far under the ground: the up-front
+  // shader compile (main.js) then covers interiors too, so walking up to the
+  // first tower doesn't stall on compiling them.
+  buildWarmup() {
+    const g = new THREE.Group();
+    g.position.set(0, -5000, 0);
+    const term = new THREE.InstancedMesh(INTERIOR_GEO.terminal, INTERIOR_MATS.terminal, 1);
+    term.setColorAt(0, new THREE.Color(1, 1, 1));
+    const elev = new THREE.InstancedMesh(INTERIOR_GEO.elevator, INTERIOR_MATS.elevator, 1);
+    const lines = new THREE.BufferGeometry();
+    lines.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+    lines.setAttribute("color", new THREE.Float32BufferAttribute([1, 1, 1, 1, 1, 1], 3));
+    g.add(term, elev, new THREE.LineSegments(lines, INTERIOR_MATS.rooms), makeLabel("warmup", { color: "#22e6ff", px: 40, height: 0.42 }));
+    this.group.add(g);
   }
 
   // ── layout ──────────────────────────────────────────────────────────────
@@ -286,6 +313,7 @@ export class City {
   setHouse(lot, data, meta) {
     if (lot.house) { disposeObject(lot.house); lot.group.remove(lot.house); }
     lot.house = buildHouse(data.parts || [], lot.agent.spec.palette);
+    this.precompile?.(lot.house); // shaders compiled in the background, not on first sight
     lot.group.add(lot.house);
     lot.group.updateMatrixWorld(true);
     lot.colliders = lot.house.userData.colliders(lot.group.matrixWorld);
@@ -302,12 +330,22 @@ export class City {
     return p.x > b.bounds.min[0] - pad && p.x < b.bounds.max[0] + pad && p.z > b.bounds.min[2] - pad && p.z < b.bounds.max[2] + pad;
   }
 
+  // Leaving a tower hides its interior instead of destroying it: destroying
+  // freed GPU memory and, with it, shaders that then had to be compiled again
+  // on the next tower, a one-second freeze on Windows. The 12 most recently
+  // visited stay ready; older ones are disposed.
   updateInteriors(p) {
+    const now = performance.now();
     for (const b of this.buildings) {
       const near = this.near(b, p, 30);
-      if (near && !b.interior) this.buildInterior(b);
-      else if (!near && b.interior) { disposeObject(b.interior.group); b.group.remove(b.interior.group); b.interior = null; }
+      if (near) {
+        if (!b.interior) this.buildInterior(b);
+        b.interior.group.visible = true;
+        b.interior.seen = now;
+      } else if (b.interior?.group.visible) b.interior.group.visible = false;
     }
+    const kept = this.buildings.filter((b) => b.interior && !b.interior.group.visible).sort((a, b) => b.interior.seen - a.interior.seen);
+    for (const b of kept.slice(12)) { disposeObject(b.interior.group); b.group.remove(b.interior.group); b.interior = null; }
   }
 
   buildInterior(b) {
@@ -331,11 +369,11 @@ export class City {
       const tg = new THREE.BufferGeometry();
       tg.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
       tg.setAttribute("color", new THREE.Float32BufferAttribute(c, 3));
-      group.add(new THREE.LineSegments(tg, new THREE.LineBasicMaterial({ vertexColors: true })));
+      group.add(new THREE.LineSegments(tg, INTERIOR_MATS.rooms));
     }
 
     const dummy = new THREE.Object3D();
-    const terminals = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, 1.5, 0.3), new THREE.MeshBasicMaterial(), Math.max(1, roomList.length));
+    const terminals = new THREE.InstancedMesh(INTERIOR_GEO.terminal, INTERIOR_MATS.terminal, Math.max(1, roomList.length));
     terminals.count = roomList.length;
     roomList.forEach((r, i) => {
       dummy.position.set(r.x, r.y + 0.9, r.z - ROOM * 0.22);
@@ -347,7 +385,7 @@ export class City {
     terminals.userData.rooms = roomList;
     group.add(terminals);
 
-    const elevators = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 3.2, 0.2), new THREE.MeshBasicMaterial({ color: glow("#e8fbff", 1.4) }), b.n);
+    const elevators = new THREE.InstancedMesh(INTERIOR_GEO.elevator, INTERIOR_MATS.elevator, b.n);
     for (let fi = 0; fi < b.n; fi++) {
       const e = this.elevatorLocal(b, fi);
       dummy.position.set(e.x, e.y + 1.7, e.z - 0.15);
@@ -359,7 +397,7 @@ export class City {
 
     b.group.add(group);
     group.updateMatrixWorld(true);
-    b.interior = { group, terminals, elevators, labels: null, labelFloor: -1 };
+    b.interior = { group, terminals, elevators, labels: null, labelFloor: -1, seen: performance.now() };
   }
 
   // Room/floor name sprites for one floor at a time (canvas text is costly).
@@ -434,9 +472,17 @@ export class City {
   randomStreetPoint() { return V(layoutMath.randomStreetPoint(this.L)); }
   get streetHalf() { return STREET; }
 
+  // Past the fog nothing can be seen, so it isn't drawn: towers beyond 750 m,
+  // lots and houses beyond 450 m. Checked a few times a second, not per frame.
+  cull(p) {
+    const far = (o, r) => Math.hypot(o.cx - p.x, o.cz - p.z) > r + Math.max(o.W, o.D) / 2;
+    for (const b of this.buildings) if (b.group) b.group.visible = !far(b, 750);
+    for (const l of this.lots) if (l.group) l.group.visible = !far(l, 450);
+  }
+
   update(t, dt) {
     this.groundMat.uniforms.uTime.value = t;
-    for (const l of this.lots) l.house?.userData.update(t, dt);
+    for (const l of this.lots) if (l.group?.visible) l.house?.userData.update(t, dt);
     for (const bl of this.blinkers) bl.mesh.visible = Math.sin(t * bl.rate * 3 + bl.phase) > -0.3;
     for (const c of this.cycles) {
       c.g.position.x += c.dir * c.speed * dt;

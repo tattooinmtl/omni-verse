@@ -6,23 +6,43 @@ import { geo, resolveColor } from "./avatar.js";
 // one InstancedMesh per shape / glow / opacity bucket, so a house can hold
 // thousands of parts; animated and wireframe parts stay individual meshes.
 
-const MAX_ANIMATED = 160;
+// Each moving part is its own draw call, so a house gets at most this many;
+// the rest stand still and join the batches.
+const MAX_ANIMATED = 48;
 const matCache = new Map();
 
 // The instance colour drives both diffuse and emissive, so one material
-// serves every colour in its glow bucket.
+// serves every colour in its glow bucket. The glow is a uniform, not a number
+// written into the shader: every glow level then shares ONE compiled program,
+// instead of each new level compiling its own and freezing the frame.
 function instancedMaterial(emis, opacity) {
   const key = `${emis}|${opacity}`;
   if (matCache.has(key)) return matCache.get(key);
   const transparent = opacity < 1;
   const m = new THREE.MeshStandardMaterial({ metalness: 0.5, roughness: 0.38, transparent, opacity, depthWrite: !transparent });
+  const uEmis = { value: emis };
   m.onBeforeCompile = (s) => {
-    s.fragmentShader = s.fragmentShader.replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>\ntotalEmissiveRadiance = vColor.rgb * ${emis.toFixed(2)};`);
+    s.uniforms.uEmis = uEmis;
+    s.fragmentShader = "uniform float uEmis;\n" + s.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance = vColor.rgb * uEmis;");
   };
-  m.customProgramCacheKey = () => `house-emis-${emis}`;
+  m.customProgramCacheKey = () => "house-emis";
   m.userData.shared = true;
   matCache.set(key, m);
   return m;
+}
+
+// Moving and wireframe parts with the same look share one material, except
+// flickering ones, which change theirs every frame.
+const partCache = new Map();
+function partMaterial(p, color) {
+  const glow = Math.round(p.emissive * Math.min(1, Math.max(0.12, 5 / Math.max(...p.size))) * 8) / 8;
+  const key = `${p.wire ? "w" : "s"}|${color.getHexString()}|${p.wire ? p.emissive : glow}|${p.opacity}`;
+  if (p.anim !== "flicker" && partCache.has(key)) return partCache.get(key);
+  const mat = p.wire
+    ? new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1 + p.emissive), wireframe: true, transparent: p.opacity < 1, opacity: p.opacity })
+    : new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: glow, metalness: 0.5, roughness: 0.38, transparent: p.opacity < 1, opacity: p.opacity, depthWrite: p.opacity >= 1 });
+  if (p.anim !== "flicker") { mat.userData.shared = true; partCache.set(key, mat); }
+  return mat;
 }
 
 export function buildHouse(parts, palette) {
@@ -36,9 +56,7 @@ export function buildHouse(parts, palette) {
     const color = new THREE.Color(resolveColor(p.color, palette));
     const moving = p.anim !== "none" && p.speed > 0 && animated.length < MAX_ANIMATED;
     if (moving || p.wire) {
-      const mat = p.wire
-        ? new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1 + p.emissive), wireframe: true, transparent: p.opacity < 1, opacity: p.opacity })
-        : new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: p.emissive * Math.min(1, Math.max(0.12, 5 / Math.max(...p.size))), metalness: 0.5, roughness: 0.38, transparent: p.opacity < 1, opacity: p.opacity, depthWrite: p.opacity >= 1 });
+      const mat = partMaterial(p, color);
       const mesh = new THREE.Mesh(geo(p.shape), mat);
       mesh.scale.set(...p.size);
       mesh.position.set(...p.pos);

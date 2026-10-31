@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Legal — Omni series</title>
+<meta name="description" content="EULA, Terms of Use, Privacy and Cookie Policy for Omni, OmniBots, OmniOne and OmniVerse by Global Warning Networks.">
+<meta name="theme-color" content="#01050a">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #01050a; --panel: #06121c; --panel-2: #0a1b28; --line: #15324a;
+  --text: #dce9f2; --dim: #8fa8bb; --accent: #3fe0ff; --accent-ink: #00141c;
+  --warn-bg: #2a1606; --warn-line: #a3591a; --warn-text: #ffd7a8;
+  --ok: #57e3a0; --bad: #ff7a7a;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: 960px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left)); padding-block: 0 64px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-block: 20px; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 800; letter-spacing: .12em; text-decoration: none; color: var(--text); }
+.brand span { color: var(--accent); }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.lang button { background: none; border: 0; color: var(--dim); padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 32px 0 8px; }
+.meta { color: var(--dim); font-size: 14px; margin: 0 0 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+.chips a { display: inline-block; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--text); font-size: 14px; }
+.warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); border-radius: 12px; padding: 16px 20px; margin: 0 0 28px; }
+.warn strong { color: #fff1de; }
+.warn p { margin: 6px 0; }
+nav.index { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin: 0 0 28px; }
+nav.index h2 { font-size: 16px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+nav.index ol { margin: 0; padding-left: 20px; columns: 2 280px; column-gap: 32px; }
+nav.index li { break-inside: avoid; }
+nav.index > ol > li > a { font-weight: 700; }
+nav.index ol ol { columns: 1; padding-left: 18px; font-size: 14px; }
+section.part { margin: 0 0 36px; }
+.part-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.part-h h2 { margin: 0 0 10px; font-size: 24px; }
+.progress { font-size: 13px; color: var(--dim); }
+.progress.done { color: var(--ok); }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 24px 24px; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; }
+.doc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.doc h3 { font-size: 18px; margin: 28px 0 8px; scroll-margin-top: 12px; }
+.doc h4 { font-size: 15px; margin: 18px 0 6px; color: var(--accent); }
+.doc p, .doc li { color: var(--text); }
+.doc ul, .doc ol { padding-left: 22px; }
+.doc .caps { text-transform: none; font-weight: 600; background: var(--panel-2); border-left: 3px solid var(--warn-line); padding: 10px 14px; border-radius: 6px; }
+.doc .end { margin-top: 28px; padding-top: 14px; border-top: 1px dashed var(--line); color: var(--dim); font-size: 14px; text-align: center; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0 12px; }
+th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 8px 10px; vertical-align: top; }
+th { color: var(--dim); font-weight: 600; }
+code { background: var(--panel-2); padding: 1px 6px; border-radius: 4px; font-size: .92em; }
+.agree { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+.agree input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.agree.locked { opacity: .6; }
+.agree .hint { display: block; color: var(--dim); font-size: 13px; }
+.consent { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 20px 24px; }
+.consent h2 { margin: 0 0 8px; font-size: 22px; }
+.cookie-choice { display: grid; gap: 8px; margin: 12px 0 18px; }
+.cookie-choice label { display: flex; gap: 10px; align-items: flex-start; }
+.cookie-choice input { margin-top: 5px; accent-color: var(--accent); }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { font: inherit; font-weight: 700; padding: 12px 22px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--text); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.status { margin: 16px 0 0; padding: 12px 16px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
+.status.ok { border-color: var(--ok); }
+.status.bad { border-color: var(--bad); }
+footer.foot { margin-top: 40px; color: var(--dim); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+@media print {
+  :root { color-scheme: light; --bg: #fff; --panel: #fff; --panel-2: #f3f3f3; --line: #ccc; --text: #000; --dim: #444; --accent: #004f66; }
+  .doc { max-height: none; overflow: visible; }
+  .consent, .lang, nav.index, .agree, .progress { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <a class="brand" href="https://omniverse.globalwarningnetworks.com/">OMNI <span>SERIES</span> · LEGAL</a>
+  <div class="lang" role="group" aria-label="Language / Langue">
+    <button type="button" data-set-lang="fr" aria-pressed="false">Français</button>
+    <button type="button" data-set-lang="en" aria-pressed="true">English</button>
+  </div>
+</header>
+
+<!-- ===================================================================== -->
+<!--                                ENGLISH                                -->
+<!-- ===================================================================== -->
+<div data-lang="en">
+<h1>Legal: EULA, Terms of Use, Privacy and Cookies</h1>
+<p class="meta">Version 2026-10-31 · Effective October 31, 2026 · Applies to every product and website below</p>
+<ul class="chips" aria-label="Products covered">
+  <li><a href="https://omni.globalwarningnetworks.com/">Omni</a></li>
+  <li><a href="https://omnibots.globalwarningnetworks.com/">OmniBots</a></li>
+  <li><a href="https://omnione.globalwarningnetworks.com/">OmniOne</a></li>
+  <li><a href="https://omniverse.globalwarningnetworks.com/">OmniVerse</a></li>
+</ul>
+
+<div class="warn" role="note">
+  <p><strong>⚠ Read this first.</strong> Omni, OmniBots, OmniOne and OmniVerse are <strong>experimental AI software for advanced users</strong>. They run AI agents and SI (synthetic intelligence) agents that can execute commands, change or delete files and act on your computer and accounts by themselves.</p>
+  <p>You use them <strong>entirely at your own risk</strong>. They are provided <strong>“as is”, with no warranty or guarantee of any kind</strong>, and we are <strong>not responsible for any loss of data</strong>, damage or cost that results from using them, to the fullest extent the law allows.</p>
+  <p>Creating an account, signing in, downloading, installing or using any of these products means you accept the documents below.</p>
+</div>
+
+<nav class="index" aria-label="Index">
+  <h2>Index</h2>
+  <ol>
+    <li><a href="#en-eula">Part 1 · End-User License Agreement and Terms of Use</a>
+      <ol>
+        <li><a href="#en-t1">Who we are and what this covers</a></li>
+        <li><a href="#en-t2">How you accept</a></li>
+        <li><a href="#en-t3">For advanced users only</a></li>
+        <li><a href="#en-t4">What these products do and the risks</a></li>
+        <li><a href="#en-t5">Your responsibilities</a></li>
+        <li><a href="#en-t6">License</a></li>
+        <li><a href="#en-t7">Accounts and online services</a></li>
+        <li><a href="#en-t8">Acceptable use</a></li>
+        <li><a href="#en-t9">Your content</a></li>
+        <li><a href="#en-t10">Third-party services and AI models</a></li>
+        <li><a href="#en-t11">AI output is not advice</a></li>
+        <li><a href="#en-t12">Updates and changes to the products</a></li>
+        <li><a href="#en-t13">No warranty</a></li>
+        <li><a href="#en-t14">Limitation of liability, including data loss</a></li>
+        <li><a href="#en-t15">Assumption of risk</a></li>
+        <li><a href="#en-t16">Indemnity</a></li>
+        <li><a href="#en-t17">Consumer rights</a></li>
+        <li><a href="#en-t18">Export and sanctions</a></li>
+        <li><a href="#en-t19">Suspension and termination</a></li>
+        <li><a href="#en-t20">Changes to these terms</a></li>
+        <li><a href="#en-t21">Governing law and courts</a></li>
+        <li><a href="#en-t22">Language</a></li>
+        <li><a href="#en-t23">General</a></li>
+        <li><a href="#en-t24">Contact</a></li>
+      </ol>
+    </li>
+    <li><a href="#en-privacy">Part 2 · Privacy and Cookie Policy</a>
+      <ol>
+        <li><a href="#en-p1">Who is responsible</a></li>
+        <li><a href="#en-p2">The apps run on your computer</a></li>
+        <li><a href="#en-p3">What we collect</a></li>
+        <li><a href="#en-p4">Why we use it</a></li>
+        <li><a href="#en-p5">Cookies and similar technologies</a></li>
+        <li><a href="#en-p6">Who we share it with</a></li>
+        <li><a href="#en-p7">Where it is stored</a></li>
+        <li><a href="#en-p8">How long we keep it</a></li>
+        <li><a href="#en-p9">Security and incidents</a></li>
+        <li><a href="#en-p10">Your rights</a></li>
+        <li><a href="#en-p11">Children</a></li>
+        <li><a href="#en-p12">Automated decisions</a></li>
+        <li><a href="#en-p13">Changes to this policy</a></li>
+        <li><a href="#en-p14">Contact and complaints</a></li>
+      </ol>
+    </li>
+    <li><a href="#consent">Accept or refuse</a></li>
+  </ol>
+</nav>
+
+<section class="part" id="en-eula" aria-labelledby="en-eula-h">
+  <div class="part-h"><h2 id="en-eula-h">Part 1 · End-User License Agreement and Terms of Use</h2><span class="progress" data-progress="eula">Scroll to the end to accept</span></div>
+  <div class="doc" data-doc="eula" tabindex="0" role="region" aria-label="End-User License Agreement and Terms of Use">
+
+<h3 id="en-t1">1. Who we are and what this covers</h3>
+<p>These terms are a legal agreement between you and <strong>Global Warning Networks</strong>, operated by Erik Boivin (“<strong>we</strong>”, “<strong>us</strong>”, “<strong>our</strong>”). They form the End-User License Agreement (“<strong>EULA</strong>”) and Terms of Use for:</p>
+<ul>
+  <li><strong>Omni</strong>, a terminal AI agent harness;</li>
+  <li><strong>OmniBots</strong>, a local team of AI bots with a desktop app;</li>
+  <li><strong>OmniOne</strong>, a local AI agent (Omi-One) with its website, chat, forum, search and cloud computer services;</li>
+  <li><strong>OmniVerse</strong>, a simulated world of AI agents with its desktop app and website;</li>
+</ul>
+<p>together with their installers, updaters, source code we publish, documentation, the websites at <code>*.globalwarningnetworks.com</code> that present them, the shared Omni account and every online service reached through them (all together, the “<strong>Products</strong>”).</p>
+
+<h3 id="en-t2">2. How you accept</h3>
+<p>You accept these terms, and the Privacy and Cookie Policy in Part 2, when you do any of the following: tick the boxes and press <strong>Accept</strong> on this page; <strong>create an Omni account</strong> (registering an account automatically means you accept the version in force at that time); sign in; or download, install, run, copy or otherwise use any Product. If you do not agree, do not use the Products and do not create an account.</p>
+<p>You confirm that you are at least 18 years old, or the age of majority where you live if that is higher, and that you can legally enter into this agreement. If you use the Products for a company or other organization, you confirm you have the authority to bind it, and “you” includes that organization.</p>
+
+<h3 id="en-t3">3. For advanced users only</h3>
+<p>The Products are built for <strong>advanced users</strong>: people who understand what AI models, large language models, autonomous AI agents, SI (synthetic intelligence) agents, agent harnesses, tool calls, shell commands, API keys and prompt injection are, how they can fail and how to contain them. They are <strong>not</strong> intended for beginners, children or anyone who cannot judge and control what an autonomous agent does on their computer.</p>
+<p>By using the Products you state that you have this knowledge, or that you will acquire it before relying on them, and that you accept full responsibility for your choices.</p>
+
+<h3 id="en-t4">4. What these products do and the risks</h3>
+<p>The Products are <strong>experimental</strong> and some are in early development. Depending on how you configure them, AI agents running in the Products can, by themselves and without asking each time:</p>
+<ul>
+  <li>run programs and shell commands, install software and change system settings;</li>
+  <li>create, overwrite, move or <strong>permanently delete</strong> files, folders, code and repositories;</li>
+  <li>send requests over the internet, browse websites, send messages and call paid APIs that charge <strong>your</strong> accounts;</li>
+  <li>read the files and secrets you give them access to and pass them to the AI providers you choose.</li>
+</ul>
+<p>AI output can be wrong, incomplete, outdated, biased, offensive or invented (“hallucinated”). Agents can misread instructions, loop, act in unexpected ways or be manipulated by content they read (prompt injection). Bugs, crashes, updates and power or network failures can corrupt or lose data.</p>
+
+<h3 id="en-t5">5. Your responsibilities</h3>
+<p>You alone decide what the Products may access and do. In particular you agree to:</p>
+<ul>
+  <li>keep current, tested <strong>backups</strong> of everything the Products can reach, and preferably run them in a virtual machine, container or dedicated account;</li>
+  <li>review permissions, prompts and proposed actions, and stop the Products when something looks wrong;</li>
+  <li>protect your API keys, tokens and passwords, and never store secrets where an agent can leak them;</li>
+  <li>follow the terms of every third-party service and AI provider you connect, and pay all of their charges;</li>
+  <li>use the Products lawfully and not for high-risk uses where failure could cause death, injury, serious environmental or property damage or major financial loss, such as medical, legal, financial or safety-critical decisions, critical infrastructure, weapons or surveillance of people.</li>
+</ul>
+
+<h3 id="en-t6">6. License</h3>
+<h4>Omni (open source)</h4>
+<p>Omni’s source code is published under the <strong>MIT License</strong>. The MIT License governs your right to use, copy, modify and distribute that code, and nothing in these terms limits it. These terms add to it for the Omni binaries, installers, websites and online services, and the warranty disclaimer and limitation of liability below apply in addition to the MIT License’s own.</p>
+<h4>OmniBots, OmniOne and OmniVerse</h4>
+<p>Unless a file or repository states a different license, we grant you a personal, limited, non-exclusive, non-transferable, non-sublicensable and revocable license to download, install and use these Products for your own personal or internal purposes, in line with these terms. We and our licensors keep all rights, title and intellectual property in the Products; you get no rights except those expressly granted. You may not sell, rent, sublicense or redistribute them as your own, remove copyright or legal notices, get around security or usage limits, or reverse engineer them, except where the law allows it despite this restriction.</p>
+<h4>Third-party components</h4>
+<p>The Products include open-source components that remain under their own licenses. Where such a license gives you more rights than these terms, that license wins for that component.</p>
+
+<h4>No fees</h4>
+<p>The Products are currently offered free of charge. If we ever offer paid features, the price and any extra terms will be shown before you pay.</p>
+
+<h3 id="en-t7">7. Accounts and online services</h3>
+<p>One Omni account (created on OmniOne) works across all the Products. You must give accurate information, keep your password secret and tell us without delay about any unauthorized use. You are responsible for everything done with your account and with any device or app you connect to it.</p>
+<p>Online services, including the website chat, forum, device connection, private search and per-account cloud computers, are provided on a best-effort basis. They may be rate-limited, changed, interrupted or ended at any time without notice. Web traffic from the cloud computers goes through a logging proxy so that abuse can be traced. Files sent through the website chat are deleted automatically after delivery (currently 7 days). Do not use any online service as your only copy of anything.</p>
+
+<h3 id="en-t8">8. Acceptable use</h3>
+<p>You must not use the Products or our services to:</p>
+<ul>
+  <li>break any law or anyone’s rights, including privacy and intellectual property rights;</li>
+  <li>create or spread malware, attack, scan or break into systems or accounts without the owner’s permission, or overload our servers;</li>
+  <li>send spam, run scams or phishing, or harass, threaten or impersonate anyone;</li>
+  <li>post or generate child sexual abuse material, non-consensual intimate content or content that promotes violence or hatred;</li>
+  <li>scrape, resell or share access to our online services, or use them to train competing services;</li>
+  <li>get around rate limits, security measures or account restrictions.</li>
+</ul>
+<p>Security research on our own services is welcome only with our prior written permission.</p>
+
+<h3 id="en-t9">9. Your content</h3>
+<p>You keep ownership of what you write, upload or produce with the Products (“your content”). So that we can run the online services, you give us a worldwide, non-exclusive, royalty-free license to host, store, copy, transmit and display your content only as needed to provide those services, for as long as the content stays on them. You confirm you have the right to share your content. We may remove content or refuse to deliver it if we believe it breaks these terms or the law.</p>
+
+<h3 id="en-t10">10. Third-party services and AI models</h3>
+<p>The Products let you connect AI models and services from third parties (for example Anthropic, OpenAI, MiniMax, Google, Hugging Face, GitHub or local model runners). Those services are not ours. Their own terms and privacy policies apply, they may charge you, and we are not responsible for their availability, output, cost, security or how they handle your data. When you use them, your prompts, files and data go <strong>directly from your computer to that provider</strong> under your own account.</p>
+
+<h3 id="en-t11">11. AI output is not advice</h3>
+<p>Nothing produced by the Products is professional advice, including medical, legal, financial, tax, security or engineering advice. Check every result yourself before you rely on it, publish it or run it.</p>
+
+<h3 id="en-t12">12. Updates and changes to the products</h3>
+<p>Some Products check for, download and install updates, including through built-in update commands. By using those features you consent to them. We may add, change or remove any feature or Product, or stop distributing it, at any time. Updates can change behaviour, break compatibility or require you to accept new terms.</p>
+
+<h3 id="en-t13">13. No warranty</h3>
+<p class="caps">To the fullest extent permitted by law, the Products are provided “as is” and “as available”, with all faults and without any warranty or guarantee of any kind, express, implied or legal. We specifically disclaim all implied warranties and conditions of merchantability, merchantable quality, fitness for a particular purpose, title, non-infringement, accuracy, quiet enjoyment and any warranty arising from a course of dealing or usage. We do not guarantee that the Products will work, meet your needs, be secure, error-free, uninterrupted or compatible with your system, that defects will be fixed, that data will be preserved, or that any AI output will be correct, safe or lawful.</p>
+
+<h3 id="en-t14">14. Limitation of liability, including data loss</h3>
+<p class="caps">To the fullest extent permitted by law, we, our operator, contributors and suppliers will not be liable for any loss of data, files, code, repositories, accounts, credentials or content; any corruption or deletion caused by the Products or by an AI agent; any charges from AI providers or other third parties; any damage to hardware or software; any security incident; any action an AI agent takes or fails to take; or any indirect, incidental, special, consequential, exemplary or punitive damages, or loss of profits, revenue, business, goodwill or opportunity, however caused and on any theory of liability, even if we were told such loss was possible.</p>
+<p class="caps">Where liability cannot be excluded, our total liability for all claims relating to the Products is limited to the greater of the amount you paid us for the Product concerned in the 12 months before the claim and fifty Canadian dollars (CAD $50).</p>
+
+<h3 id="en-t15">15. Assumption of risk</h3>
+<p>You understand that autonomous AI software is unpredictable and you accept all risks of using the Products, including the risk of losing data and of agents taking harmful actions. You agree that the Products are free and experimental and that this allocation of risk is fair and a basic reason we can offer them.</p>
+
+<h3 id="en-t16">16. Indemnity</h3>
+<p>To the extent permitted by law, you will defend, indemnify and hold harmless us, our operator and contributors from any claim, loss, damage, fine or cost (including reasonable legal fees) arising from your use of the Products, your content, actions taken by AI agents you run or configure, or your breach of these terms or of the law.</p>
+
+<h3 id="en-t17">17. Consumer rights</h3>
+<p>Nothing in these terms takes away rights that the law where you live gives you and that cannot be waived by contract. In particular:</p>
+<ul>
+  <li>If you are a consumer in Quebec, the <em>Consumer Protection Act</em> applies, and any clause that it does not allow does not apply to you. Under the <em>Civil Code of Québec</em>, we cannot exclude or limit liability for bodily or moral injury, or for intentional or gross fault.</li>
+  <li>If you are a consumer elsewhere in Canada, in the European Union, the United Kingdom or another place with mandatory consumer law, you keep those mandatory rights, and our exclusions apply only as far as that law allows.</li>
+  <li>Some places do not allow the exclusion of implied warranties or certain damages; there, those exclusions apply to you only to the extent permitted.</li>
+</ul>
+
+<h3 id="en-t18">18. Export and sanctions</h3>
+<p>You will not use, export or re-export the Products in breach of Canadian or other applicable export control or sanctions laws, or for anyone on a government restricted-party list.</p>
+
+<h3 id="en-t19">19. Suspension and termination</h3>
+<p>You may stop using the Products and ask us to delete your account at any time. We may suspend or close an account, or refuse service, if you break these terms, if the law requires it, or to protect users or our systems. Your license ends automatically if you break these terms. Sections 4, 5 and 9 to 23 survive the end of this agreement.</p>
+
+<h3 id="en-t20">20. Changes to these terms</h3>
+<p>We may update these terms. The new version will be posted on this page with a new version date. When a change is significant, every Omni website will ask you to review and accept the new version, and we may also notify you by email. If you keep using the Products after a change takes effect, you accept the new version; if you do not agree, stop using them. Changes do not apply to disputes already started.</p>
+
+<h3 id="en-t21">21. Governing law and courts</h3>
+<p>These terms are governed by the laws of the Province of Quebec and the federal laws of Canada that apply there, without regard to conflict-of-law rules. The United Nations Convention on Contracts for the International Sale of Goods does not apply. Subject to any mandatory right a consumer has to sue in their own place of residence, the courts of the judicial district of Montreal, Quebec, have exclusive jurisdiction.</p>
+
+<h3 id="en-t22">22. Language</h3>
+<p>These terms are available in French and in English, and both versions have equal force. Consistent with the <em>Charter of the French Language</em>, the French version is offered first; by accepting the English version, you expressly ask that this agreement and related documents be in English. <em>Les parties ont expressément exigé que cette convention et les documents qui s’y rattachent soient rédigés en anglais, après avoir pris connaissance de la version française.</em></p>
+
+<h3 id="en-t23">23. General</h3>
+<p>These terms, with the Privacy and Cookie Policy and any license notice in a Product, are the entire agreement between you and us about the Products. If a clause is found invalid, it is limited to the minimum extent needed and the rest stays in force. Not enforcing a right is not a waiver of it. You may not transfer this agreement; we may transfer it as part of a reorganization or sale of the Products. We are not responsible for delays or failures caused by events beyond our reasonable control.</p>
+
+<h3 id="en-t24">24. Contact</h3>
+<p>Global Warning Networks, attention Erik Boivin: <a href="mailto:erik.boivin@proton.me">erik.boivin@proton.me</a> (address shown as text: erik.boivin@proton.me).</p>
+<p class="end">End of Part 1. You can now tick the box below.</p>
+  </div>
+  <label class="agree locked" data-agree="eula">
+    <input type="checkbox" id="agree-eula-en" data-check="eula" disabled>
+    <span>I have read and I accept the <strong>End-User License Agreement and Terms of Use</strong>. I understand the Products are experimental, for advanced users, provided without any warranty, and used at my own risk, including the risk of data loss.
+      <span class="hint" data-hint="eula">Scroll to the end of Part 1 to enable this box.</span></span>
+  </label>
+</section>
+
+<section class="part" id="en-privacy" aria-labelledby="en-privacy-h">
+  <div class="part-h"><h2 id="en-privacy-h">Part 2 · Privacy and Cookie Policy</h2><span class="progress" data-progress="privacy">Scroll to the end to accept</span></div>
+  <div class="doc" data-doc="privacy" tabindex="0" role="region" aria-label="Privacy and Cookie Policy">
+
+<h3 id="en-p1">1. Who is responsible</h3>
+<p>Global Warning Networks, operated by Erik Boivin, is responsible for the personal information described here. The person in charge of the protection of personal information is <strong>Erik Boivin</strong>, reachable at <a href="mailto:erik.boivin@proton.me">erik.boivin@proton.me</a> (erik.boivin@proton.me). This policy is written to meet Quebec’s <em>Act respecting the protection of personal information in the private sector</em> (as amended by Law 25), Canada’s <em>PIPEDA</em> and, for people in the European Union or the United Kingdom, the GDPR.</p>
+
+<h3 id="en-p2">2. The apps run on your computer</h3>
+<p>Omni, OmniBots, OmniOne and OmniVerse run locally on your own computer. What they do there, including your files, projects, prompts, conversations, API keys and settings, stays on your computer and is <strong>not sent to us</strong>, unless you use a feature that connects to our online services (described below).</p>
+<p>When you connect an AI provider or other third-party service, the apps send your prompts and data <strong>directly to that provider</strong>, under your own account. That provider’s privacy policy applies, not this one. Read it before connecting.</p>
+
+<h3 id="en-p3">3. What we collect</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Information</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td>Display name, email address, password (stored only as a one-way hash, Argon2id where available), verification status, join date</td><td>When you create an Omni account</td></tr>
+    <tr><td>Version of these terms you accepted and when</td><td>When you register or press Accept here</td></tr>
+    <tr><td>Sign-in records: email entered, success or failure, reason, source (website or app), IP address, time</td><td>Every sign-in attempt, for security</td></tr>
+    <tr><td>Connected devices: computer name, operating system, app version, last IP address, last use</td><td>When you connect an app to your account</td></tr>
+    <tr><td>Website chat messages and files, forum posts and comments</td><td>When you use those features</td></tr>
+    <tr><td>Search queries and cloud computer activity, including proxied web traffic logs</td><td>When you use OmniOne’s search or cloud computer services</td></tr>
+    <tr><td>Visit counter: IP address, browser user agent, page, referring page, account ID if signed in, time</td><td>When you load the OmniVerse website</td></tr>
+    <tr><td>Server logs: IP address, browser user agent, pages requested, errors</td><td>Every request to our websites (kept by our host)</td></tr>
+    <tr><td>Messages you send us</td><td>When you contact us</td></tr>
+  </tbody>
+</table></div>
+<p>We do not collect payment information, we do not use advertising or analytics trackers, and we do not sell or rent personal information.</p>
+
+<h3 id="en-p4">4. Why we use it</h3>
+<ul>
+  <li>To create and run your account and sign you in across the Products (performance of our contract with you).</li>
+  <li>To provide the online services you ask for, such as chat, forum, search, cloud computers and device connection (contract).</li>
+  <li>To keep the services secure, prevent abuse and fraud, rate-limit, and investigate incidents (our legitimate interest and legal obligations).</li>
+  <li>To count visits in aggregate and improve the websites (legitimate interest).</li>
+  <li>To send account emails, such as verification codes, password resets and notices of important changes (contract).</li>
+  <li>To record your acceptance of these documents and your cookie choices (legal obligation and legitimate interest).</li>
+  <li>To comply with the law and respond to lawful requests.</li>
+</ul>
+<p>We use personal information only for these purposes, or for another purpose with your consent or where the law allows it.</p>
+
+<h3 id="en-p5">5. Cookies and similar technologies</h3>
+<p>We use only the cookies needed for the websites to work and to remember your choices, including your language. We use no advertising, tracking or analytics cookies.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Name</th><th>Purpose</th><th>Type</th><th>Lasts</th></tr></thead>
+  <tbody>
+    <tr><td><code>omni_sid</code></td><td>Keeps you signed in to your Omni account (OmniOne and OmniVerse websites). Secure, HttpOnly.</td><td>Essential</td><td>Up to 30 days</td></tr>
+    <tr><td><code>gwn_legal</code></td><td>Remembers which version of these documents you accepted or refused and your cookie choice, on every <code>*.globalwarningnetworks.com</code> site.</td><td>Essential</td><td>12 months</td></tr>
+    <tr><td><code>gwn_lang</code></td><td>Remembers whether you read the Omni websites in French or English (set from your browser’s language the first time, then from your choice), on every <code>*.globalwarningnetworks.com</code> site.</td><td>Functional</td><td>12 months</td></tr>
+  </tbody>
+</table></div>
+<p><strong>Optional cookies:</strong> there are none today. If we ever add any, they will stay off unless you allow them on this page, and you can change your mind at any time.</p>
+<p><strong>Third-party content:</strong> some pages load fonts or styles from other servers: Google Fonts (<code>fonts.googleapis.com</code>, <code>fonts.gstatic.com</code>) on the Omni, OmniOne and OmniVerse websites, the Tailwind CSS script (<code>cdn.tailwindcss.com</code>) on the Omni website, and the three.js 3D library (<code>cdn.jsdelivr.net</code>) on the OmniVerse website. Downloads and version checks go to GitHub (<code>github.com</code>, <code>raw.githubusercontent.com</code>). Those servers receive your IP address and browser details when the page loads, under their own privacy policies. You can block them with your browser or a content blocker; pages will still work, with plainer styling.</p>
+<p>You can delete cookies at any time in your browser settings. Blocking essential cookies will stop sign-in from working.</p>
+
+<h3 id="en-p6">6. Who we share it with</h3>
+<p>We share personal information only with:</p>
+<ul>
+  <li>our service providers that host and run the websites and services for us: web hosting (FastComet), the server that runs search and cloud computers, and email delivery. They may use the information only to provide their service to us;</li>
+  <li>your own computer, when your OmniOne app picks up chat messages you sent from the website;</li>
+  <li>authorities, when the law requires it, or to protect rights, safety and security;</li>
+  <li>a buyer or successor if the Products are reorganized or sold, under this policy.</li>
+</ul>
+<p>Forum posts and your display name on them are visible to other users.</p>
+
+<h3 id="en-p7">7. Where it is stored</h3>
+<p>Our servers and those of our providers may be located outside Quebec and outside Canada, including in the United States, where local authorities may be able to access data under their laws. Before information is communicated outside Quebec, we assess whether it will receive adequate protection, as Quebec law requires, and we use contracts to protect it.</p>
+
+<h3 id="en-p8">8. How long we keep it</h3>
+<ul>
+  <li>Account information: while your account is open, then deleted or anonymized within 90 days of closing it, except what we must keep by law.</li>
+  <li>Website chat files: deleted automatically after delivery (currently 7 days).</li>
+  <li>Sign-in records, visit records, device records and service logs: as long as needed for security and abuse prevention, and no longer than 24 months.</li>
+  <li>Records of your acceptance of these documents: as long as your account exists, plus the time needed to prove the agreement.</li>
+</ul>
+
+<h3 id="en-p9">9. Security and incidents</h3>
+<p>We protect information with HTTPS, hashed passwords, forgery protection on forms, rate limits, restricted server folders and limited access. No system is completely secure, and we cannot guarantee the security of information sent over the internet. If a confidentiality incident creates a risk of serious injury, we will notify the people affected and the Commission d’accès à l’information du Québec (and any other authority the law requires), and keep a register of incidents.</p>
+
+<h3 id="en-p10">10. Your rights</h3>
+<p>You may ask to access the personal information we hold about you, have it corrected, get a copy in a commonly used technological format, have it deleted, withdraw your consent, object to a use, or ask that information about you stop being disseminated or be de-indexed where the law allows. Email us at erik.boivin@proton.me. We answer within 30 days and may need to confirm your identity. Withdrawing consent or deleting your account may mean some services can no longer be provided.</p>
+
+<h3 id="en-p11">11. Children</h3>
+<p>The Products are for adults only. We do not knowingly collect information from anyone under 18. If you believe a minor has given us information, contact us and we will delete it.</p>
+
+<h3 id="en-p12">12. Automated decisions</h3>
+<p>We do not make decisions about you based solely on automated processing of your personal information. Automatic security limits, such as blocking repeated failed sign-ins, apply equally to everyone and can be reviewed on request.</p>
+
+<h3 id="en-p13">13. Changes to this policy</h3>
+<p>We will post any update here with a new version date and, for significant changes, ask you to accept again through the notice on every Omni website.</p>
+
+<h3 id="en-p14">14. Contact and complaints</h3>
+<p>Questions or requests: Erik Boivin, person in charge of the protection of personal information, erik.boivin@proton.me. If you are not satisfied with our answer, you may complain to the Commission d’accès à l’information du Québec (cai.gouv.qc.ca), the Office of the Privacy Commissioner of Canada (priv.gc.ca) or, in the EU or UK, your local data protection authority.</p>
+<p class="end">End of Part 2. You can now tick the box below.</p>
+  </div>
+  <label class="agree locked" data-agree="privacy">
+    <input type="checkbox" id="agree-privacy-en" data-check="privacy" disabled>
+    <span>I have read and I accept the <strong>Privacy and Cookie Policy</strong>.
+      <span class="hint" data-hint="privacy">Scroll to the end of Part 2 to enable this box.</span></span>
+  </label>
+</section>
+</div>
+
+<!-- ===================================================================== -->
+<!--                                FRANÇAIS                               -->
+<!-- ===================================================================== -->
+<div data-lang="fr" lang="fr" hidden>
+<h1>Mentions légales : CLUF, conditions d’utilisation, confidentialité et témoins</h1>
+<p class="meta">Version 2026-10-31 · En vigueur le 31 octobre 2026 · S’applique à tous les produits et sites ci-dessous</p>
+<ul class="chips" aria-label="Produits visés">
+  <li><a href="https://omni.globalwarningnetworks.com/">Omni</a></li>
+  <li><a href="https://omnibots.globalwarningnetworks.com/">OmniBots</a></li>
+  <li><a href="https://omnione.globalwarningnetworks.com/">OmniOne</a></li>
+  <li><a href="https://omniverse.globalwarningnetworks.com/">OmniVerse</a></li>
+</ul>
+
+<div class="warn" role="note">
+  <p><strong>⚠ À lire d’abord.</strong> Omni, OmniBots, OmniOne et OmniVerse sont des <strong>logiciels d’IA expérimentaux destinés aux utilisateurs avancés</strong>. Ils font fonctionner des agents d’IA et des agents d’IS (intelligence synthétique) qui peuvent exécuter des commandes, modifier ou supprimer des fichiers et agir seuls sur votre ordinateur et vos comptes.</p>
+  <p>Vous les utilisez <strong>entièrement à vos propres risques</strong>. Ils sont fournis <strong>« tels quels », sans aucune garantie</strong>, et nous <strong>ne sommes pas responsables de la perte de données</strong>, des dommages ou des frais qui découlent de leur utilisation, dans toute la mesure permise par la loi.</p>
+  <p>Créer un compte, vous connecter, télécharger, installer ou utiliser l’un de ces produits signifie que vous acceptez les documents ci-dessous.</p>
+</div>
+
+<nav class="index" aria-label="Index">
+  <h2>Index</h2>
+  <ol>
+    <li><a href="#fr-eula">Partie 1 · Contrat de licence d’utilisateur final et conditions d’utilisation</a>
+      <ol>
+        <li><a href="#fr-t1">Qui nous sommes et ce qui est visé</a></li>
+        <li><a href="#fr-t2">Comment vous acceptez</a></li>
+        <li><a href="#fr-t3">Pour utilisateurs avancés seulement</a></li>
+        <li><a href="#fr-t4">Ce que font ces produits et les risques</a></li>
+        <li><a href="#fr-t5">Vos responsabilités</a></li>
+        <li><a href="#fr-t6">Licence</a></li>
+        <li><a href="#fr-t7">Comptes et services en ligne</a></li>
+        <li><a href="#fr-t8">Utilisation acceptable</a></li>
+        <li><a href="#fr-t9">Votre contenu</a></li>
+        <li><a href="#fr-t10">Services tiers et modèles d’IA</a></li>
+        <li><a href="#fr-t11">Les réponses de l’IA ne sont pas des conseils</a></li>
+        <li><a href="#fr-t12">Mises à jour et changements aux produits</a></li>
+        <li><a href="#fr-t13">Aucune garantie</a></li>
+        <li><a href="#fr-t14">Limitation de responsabilité, y compris la perte de données</a></li>
+        <li><a href="#fr-t15">Acceptation des risques</a></li>
+        <li><a href="#fr-t16">Indemnisation</a></li>
+        <li><a href="#fr-t17">Droits des consommateurs</a></li>
+        <li><a href="#fr-t18">Exportation et sanctions</a></li>
+        <li><a href="#fr-t19">Suspension et résiliation</a></li>
+        <li><a href="#fr-t20">Modification des conditions</a></li>
+        <li><a href="#fr-t21">Droit applicable et tribunaux</a></li>
+        <li><a href="#fr-t22">Langue</a></li>
+        <li><a href="#fr-t23">Dispositions générales</a></li>
+        <li><a href="#fr-t24">Nous joindre</a></li>
+      </ol>
+    </li>
+    <li><a href="#fr-privacy">Partie 2 · Politique de confidentialité et de témoins</a>
+      <ol>
+        <li><a href="#fr-p1">Qui est responsable</a></li>
+        <li><a href="#fr-p2">Les applications fonctionnent sur votre ordinateur</a></li>
+        <li><a href="#fr-p3">Ce que nous recueillons</a></li>
+        <li><a href="#fr-p4">Pourquoi nous l’utilisons</a></li>
+        <li><a href="#fr-p5">Témoins (cookies) et technologies semblables</a></li>
+        <li><a href="#fr-p6">Avec qui nous le partageons</a></li>
+        <li><a href="#fr-p7">Où c’est conservé</a></li>
+        <li><a href="#fr-p8">Combien de temps nous le gardons</a></li>
+        <li><a href="#fr-p9">Sécurité et incidents</a></li>
+        <li><a href="#fr-p10">Vos droits</a></li>
+        <li><a href="#fr-p11">Enfants</a></li>
+        <li><a href="#fr-p12">Décisions automatisées</a></li>
+        <li><a href="#fr-p13">Modification de la politique</a></li>
+        <li><a href="#fr-p14">Nous joindre et plaintes</a></li>
+      </ol>
+    </li>
+    <li><a href="#consent">Accepter ou refuser</a></li>
+  </ol>
+</nav>
+
+<section class="part" id="fr-eula" aria-labelledby="fr-eula-h">
+  <div class="part-h"><h2 id="fr-eula-h">Partie 1 · Contrat de licence d’utilisateur final et conditions d’utilisation</h2><span class="progress" data-progress="eula">Faites défiler jusqu’à la fin pour accepter</span></div>
+  <div class="doc" data-doc="eula" tabindex="0" role="region" aria-label="Contrat de licence d’utilisateur final et conditions d’utilisation">
+
+<h3 id="fr-t1">1. Qui nous sommes et ce qui est visé</h3>
+<p>Les présentes conditions forment une entente juridique entre vous et <strong>Global Warning Networks</strong>, exploitée par Erik Boivin (« <strong>nous</strong> », « <strong>notre</strong> »). Elles constituent le contrat de licence d’utilisateur final (« <strong>CLUF</strong> ») et les conditions d’utilisation de :</p>
+<ul>
+  <li><strong>Omni</strong>, un environnement d’exécution (harnais) d’agent d’IA en terminal;</li>
+  <li><strong>OmniBots</strong>, une équipe locale de robots d’IA avec une application de bureau;</li>
+  <li><strong>OmniOne</strong>, un agent d’IA local (Omi-One) avec son site Web, son clavardage, son forum, sa recherche et ses ordinateurs infonuagiques;</li>
+  <li><strong>OmniVerse</strong>, un monde simulé d’agents d’IA avec son application de bureau et son site Web;</li>
+</ul>
+<p>ainsi que leurs installateurs, outils de mise à jour, le code source que nous publions, la documentation, les sites Web <code>*.globalwarningnetworks.com</code> qui les présentent, le compte Omni partagé et tous les services en ligne accessibles par leur intermédiaire (ensemble, les « <strong>Produits</strong> »).</p>
+
+<h3 id="fr-t2">2. Comment vous acceptez</h3>
+<p>Vous acceptez ces conditions, ainsi que la Politique de confidentialité et de témoins de la partie 2, lorsque vous faites l’une des choses suivantes : cocher les cases et appuyer sur <strong>Accepter</strong> sur cette page; <strong>créer un compte Omni</strong> (l’inscription à un compte vaut automatiquement acceptation de la version en vigueur à ce moment); vous connecter; ou télécharger, installer, exécuter, copier ou autrement utiliser un Produit. Si vous n’êtes pas d’accord, n’utilisez pas les Produits et ne créez pas de compte.</p>
+<p>Vous confirmez avoir au moins 18 ans, ou l’âge de la majorité là où vous vivez s’il est plus élevé, et avoir la capacité juridique de conclure cette entente. Si vous utilisez les Produits pour une entreprise ou une autre organisation, vous confirmez avoir le pouvoir de l’engager, et « vous » inclut cette organisation.</p>
+
+<h3 id="fr-t3">3. Pour utilisateurs avancés seulement</h3>
+<p>Les Produits sont conçus pour des <strong>utilisateurs avancés</strong> : des personnes qui comprennent ce que sont les modèles d’IA, les grands modèles de langage, les agents d’IA autonomes, les agents d’IS (intelligence synthétique), les harnais d’agents, les appels d’outils, les commandes système, les clés d’API et l’injection de requêtes, comment ils peuvent échouer et comment les encadrer. Ils ne sont <strong>pas</strong> destinés aux débutants, aux enfants ni à quiconque ne peut juger et contrôler ce qu’un agent autonome fait sur son ordinateur.</p>
+<p>En utilisant les Produits, vous déclarez posséder ces connaissances, ou que vous les acquerrez avant de vous y fier, et vous acceptez l’entière responsabilité de vos choix.</p>
+
+<h3 id="fr-t4">4. Ce que font ces produits et les risques</h3>
+<p>Les Produits sont <strong>expérimentaux</strong> et certains en sont à un stade précoce de développement. Selon votre configuration, les agents d’IA qui fonctionnent dans les Produits peuvent, d’eux-mêmes et sans demander chaque fois :</p>
+<ul>
+  <li>exécuter des programmes et des commandes système, installer des logiciels et changer des paramètres du système;</li>
+  <li>créer, écraser, déplacer ou <strong>supprimer définitivement</strong> des fichiers, dossiers, codes et dépôts;</li>
+  <li>envoyer des requêtes sur Internet, naviguer sur des sites, envoyer des messages et appeler des API payantes qui facturent <strong>vos</strong> comptes;</li>
+  <li>lire les fichiers et les secrets auxquels vous leur donnez accès et les transmettre aux fournisseurs d’IA que vous choisissez.</li>
+</ul>
+<p>Les réponses de l’IA peuvent être fausses, incomplètes, désuètes, biaisées, offensantes ou inventées (« hallucinations »). Les agents peuvent mal comprendre des instructions, tourner en boucle, agir de façon imprévue ou être manipulés par le contenu qu’ils lisent (injection de requêtes). Les bogues, plantages, mises à jour et pannes de courant ou de réseau peuvent corrompre ou perdre des données.</p>
+
+<h3 id="fr-t5">5. Vos responsabilités</h3>
+<p>Vous seul décidez de ce à quoi les Produits peuvent accéder et de ce qu’ils peuvent faire. Vous acceptez notamment de :</p>
+<ul>
+  <li>garder des <strong>copies de sauvegarde</strong> à jour et vérifiées de tout ce que les Produits peuvent atteindre, et de préférence les faire fonctionner dans une machine virtuelle, un conteneur ou un compte dédié;</li>
+  <li>vérifier les autorisations, les requêtes et les actions proposées, et arrêter les Produits si quelque chose semble anormal;</li>
+  <li>protéger vos clés d’API, jetons et mots de passe, et ne jamais laisser de secrets là où un agent pourrait les divulguer;</li>
+  <li>respecter les conditions de chaque service tiers et fournisseur d’IA que vous branchez, et en payer tous les frais;</li>
+  <li>utiliser les Produits légalement et non pour des usages à risque élevé où une défaillance pourrait causer la mort, des blessures, des dommages graves à l’environnement ou aux biens ou une perte financière importante, comme des décisions médicales, juridiques, financières ou liées à la sécurité, des infrastructures essentielles, des armes ou la surveillance de personnes.</li>
+</ul>
+
+<h3 id="fr-t6">6. Licence</h3>
+<h4>Omni (logiciel libre)</h4>
+<p>Le code source d’Omni est publié sous la <strong>licence MIT</strong>. La licence MIT régit votre droit d’utiliser, de copier, de modifier et de distribuer ce code, et rien dans les présentes ne la restreint. Ces conditions s’y ajoutent pour les fichiers exécutables, installateurs, sites Web et services en ligne d’Omni, et l’exclusion de garantie et la limitation de responsabilité ci-dessous s’appliquent en plus de celles de la licence MIT.</p>
+<h4>OmniBots, OmniOne et OmniVerse</h4>
+<p>Sauf si un fichier ou un dépôt indique une autre licence, nous vous accordons une licence personnelle, limitée, non exclusive, non transférable, ne pouvant faire l’objet d’une sous-licence et révocable, pour télécharger, installer et utiliser ces Produits à des fins personnelles ou internes, conformément aux présentes. Nous et nos concédants conservons tous les droits, titres et droits de propriété intellectuelle sur les Produits; vous n’obtenez aucun droit autre que ceux expressément accordés. Vous ne pouvez pas les vendre, les louer, en concéder une sous-licence ni les redistribuer comme les vôtres, retirer les avis de droit d’auteur ou juridiques, contourner les limites de sécurité ou d’utilisation, ni les désosser, sauf là où la loi le permet malgré cette restriction.</p>
+<h4>Composants de tiers</h4>
+<p>Les Produits contiennent des composants libres qui restent sous leur propre licence. Lorsqu’une telle licence vous donne plus de droits que les présentes, elle l’emporte pour ce composant.</p>
+<h4>Aucuns frais</h4>
+<p>Les Produits sont actuellement offerts gratuitement. Si nous offrons un jour des fonctions payantes, le prix et toute condition supplémentaire seront indiqués avant le paiement.</p>
+
+<h3 id="fr-t7">7. Comptes et services en ligne</h3>
+<p>Un seul compte Omni (créé sur OmniOne) fonctionne avec tous les Produits. Vous devez fournir des renseignements exacts, garder votre mot de passe secret et nous aviser sans délai de toute utilisation non autorisée. Vous êtes responsable de tout ce qui est fait avec votre compte et avec tout appareil ou application que vous y branchez.</p>
+<p>Les services en ligne, y compris le clavardage du site, le forum, la connexion d’appareils, la recherche privée et les ordinateurs infonuagiques par compte, sont fournis au mieux de nos capacités. Ils peuvent être limités, modifiés, interrompus ou arrêtés à tout moment sans préavis. Le trafic Web des ordinateurs infonuagiques passe par un mandataire (proxy) qui le journalise afin de pouvoir retracer les abus. Les fichiers envoyés par le clavardage du site sont supprimés automatiquement après leur livraison (actuellement 7 jours). N’utilisez aucun service en ligne comme seule copie de quoi que ce soit.</p>
+
+<h3 id="fr-t8">8. Utilisation acceptable</h3>
+<p>Vous ne devez pas utiliser les Produits ni nos services pour :</p>
+<ul>
+  <li>enfreindre une loi ou les droits de quiconque, y compris le droit à la vie privée et la propriété intellectuelle;</li>
+  <li>créer ou propager des logiciels malveillants, attaquer, balayer ou pénétrer des systèmes ou comptes sans la permission de leur propriétaire, ou surcharger nos serveurs;</li>
+  <li>envoyer des pourriels, commettre des fraudes ou de l’hameçonnage, ou harceler, menacer ou usurper l’identité de quiconque;</li>
+  <li>publier ou générer du matériel d’abus pédosexuel, du contenu intime non consenti ou du contenu qui incite à la violence ou à la haine;</li>
+  <li>moissonner, revendre ou partager l’accès à nos services en ligne, ou les utiliser pour entraîner des services concurrents;</li>
+  <li>contourner les limites d’utilisation, les mesures de sécurité ou les restrictions de compte.</li>
+</ul>
+<p>La recherche en sécurité sur nos propres services n’est permise qu’avec notre autorisation écrite préalable.</p>
+
+<h3 id="fr-t9">9. Votre contenu</h3>
+<p>Vous restez propriétaire de ce que vous écrivez, téléversez ou produisez avec les Produits (« votre contenu »). Pour que nous puissions faire fonctionner les services en ligne, vous nous accordez une licence mondiale, non exclusive et gratuite pour héberger, stocker, copier, transmettre et afficher votre contenu, uniquement dans la mesure nécessaire pour fournir ces services et tant que le contenu s’y trouve. Vous confirmez avoir le droit de partager votre contenu. Nous pouvons retirer du contenu ou refuser de le transmettre si nous croyons qu’il enfreint les présentes ou la loi.</p>
+
+<h3 id="fr-t10">10. Services tiers et modèles d’IA</h3>
+<p>Les Produits vous permettent de brancher des modèles et des services d’IA de tiers (par exemple Anthropic, OpenAI, MiniMax, Google, Hugging Face, GitHub ou des moteurs de modèles locaux). Ces services ne sont pas les nôtres. Leurs propres conditions et politiques de confidentialité s’appliquent, ils peuvent vous facturer, et nous ne sommes pas responsables de leur disponibilité, de leurs réponses, de leurs coûts, de leur sécurité ni de la façon dont ils traitent vos données. Lorsque vous les utilisez, vos requêtes, fichiers et données vont <strong>directement de votre ordinateur vers ce fournisseur</strong>, sous votre propre compte.</p>
+
+<h3 id="fr-t11">11. Les réponses de l’IA ne sont pas des conseils</h3>
+<p>Rien de ce que produisent les Produits ne constitue un conseil professionnel, notamment médical, juridique, financier, fiscal, de sécurité ou d’ingénierie. Vérifiez vous-même chaque résultat avant de vous y fier, de le publier ou de l’exécuter.</p>
+
+<h3 id="fr-t12">12. Mises à jour et changements aux produits</h3>
+<p>Certains Produits vérifient, téléchargent et installent des mises à jour, y compris par des commandes de mise à jour intégrées. En utilisant ces fonctions, vous y consentez. Nous pouvons ajouter, modifier ou retirer toute fonction ou tout Produit, ou en cesser la distribution, à tout moment. Les mises à jour peuvent changer le comportement, briser la compatibilité ou exiger l’acceptation de nouvelles conditions.</p>
+
+<h3 id="fr-t13">13. Aucune garantie</h3>
+<p class="caps">Dans toute la mesure permise par la loi, les Produits sont fournis « tels quels » et « selon leur disponibilité », avec tous leurs défauts et sans aucune garantie de quelque nature que ce soit, expresse, implicite ou légale. Nous excluons expressément toute garantie et condition implicite de qualité marchande, d’aptitude à un usage particulier, de titre, d’absence de contrefaçon, d’exactitude, de jouissance paisible et toute garantie découlant des usages ou des relations d’affaires. Nous ne garantissons pas que les Produits fonctionneront, répondront à vos besoins, seront sûrs, exempts d’erreurs, ininterrompus ou compatibles avec votre système, que les défauts seront corrigés, que les données seront préservées, ni que les réponses de l’IA seront exactes, sûres ou légales.</p>
+
+<h3 id="fr-t14">14. Limitation de responsabilité, y compris la perte de données</h3>
+<p class="caps">Dans toute la mesure permise par la loi, ni nous, ni notre exploitant, nos contributeurs ou nos fournisseurs ne serons responsables de la perte de données, de fichiers, de code, de dépôts, de comptes, d’identifiants ou de contenu; d’une corruption ou suppression causée par les Produits ou par un agent d’IA; de frais imposés par des fournisseurs d’IA ou d’autres tiers; de dommages au matériel ou aux logiciels; d’un incident de sécurité; d’une action qu’un agent d’IA pose ou omet de poser; ni de dommages indirects, accessoires, spéciaux, consécutifs, exemplaires ou punitifs, ou de la perte de profits, de revenus, d’affaires, d’achalandage ou d’occasions, quelle qu’en soit la cause et quel que soit le fondement de la responsabilité, même si nous avions été avisés de cette possibilité.</p>
+<p class="caps">Lorsque la responsabilité ne peut être exclue, notre responsabilité totale pour l’ensemble des réclamations liées aux Produits est limitée au plus élevé des montants suivants : la somme que vous nous avez payée pour le Produit en cause au cours des 12 mois précédant la réclamation, ou cinquante dollars canadiens (50 $ CA).</p>
+
+<h3 id="fr-t15">15. Acceptation des risques</h3>
+<p>Vous comprenez que les logiciels d’IA autonomes sont imprévisibles et vous acceptez tous les risques liés à l’utilisation des Produits, y compris le risque de perdre des données et que des agents posent des actions nuisibles. Vous reconnaissez que les Produits sont gratuits et expérimentaux, et que ce partage des risques est équitable et constitue une raison essentielle pour laquelle nous pouvons les offrir.</p>
+
+<h3 id="fr-t16">16. Indemnisation</h3>
+<p>Dans la mesure permise par la loi, vous nous défendrez, nous indemniserez et nous tiendrez à couvert, ainsi que notre exploitant et nos contributeurs, de toute réclamation, perte, dommage, amende ou frais (y compris des honoraires juridiques raisonnables) découlant de votre utilisation des Produits, de votre contenu, des actions des agents d’IA que vous exécutez ou configurez, ou de votre violation des présentes ou de la loi.</p>
+
+<h3 id="fr-t17">17. Droits des consommateurs</h3>
+<p>Rien dans les présentes ne vous retire les droits que la loi de votre lieu de résidence vous accorde et auxquels on ne peut renoncer par contrat. En particulier :</p>
+<ul>
+  <li>Si vous êtes un consommateur au Québec, la <em>Loi sur la protection du consommateur</em> s’applique, et toute clause qu’elle n’autorise pas ne s’applique pas à vous. Selon le <em>Code civil du Québec</em>, nous ne pouvons exclure ni limiter notre responsabilité pour le préjudice corporel ou moral, ni pour une faute intentionnelle ou lourde.</li>
+  <li>Si vous êtes un consommateur ailleurs au Canada, dans l’Union européenne, au Royaume-Uni ou dans un autre endroit doté de lois impératives de protection du consommateur, vous conservez ces droits impératifs, et nos exclusions ne s’appliquent que dans la mesure permise par ces lois.</li>
+  <li>Certains endroits n’autorisent pas l’exclusion des garanties implicites ou de certains dommages; là, ces exclusions ne s’appliquent à vous que dans la mesure permise.</li>
+</ul>
+
+<h3 id="fr-t18">18. Exportation et sanctions</h3>
+<p>Vous n’utiliserez, n’exporterez ni ne réexporterez les Produits en violation des lois canadiennes ou autres applicables en matière de contrôle des exportations ou de sanctions, ni pour une personne inscrite sur une liste gouvernementale de parties visées.</p>
+
+<h3 id="fr-t19">19. Suspension et résiliation</h3>
+<p>Vous pouvez cesser d’utiliser les Produits et nous demander de supprimer votre compte en tout temps. Nous pouvons suspendre ou fermer un compte, ou refuser le service, si vous enfreignez les présentes, si la loi l’exige, ou pour protéger les utilisateurs ou nos systèmes. Votre licence prend fin automatiquement si vous enfreignez les présentes. Les articles 4, 5 et 9 à 23 survivent à la fin de cette entente.</p>
+
+<h3 id="fr-t20">20. Modification des conditions</h3>
+<p>Nous pouvons mettre ces conditions à jour. La nouvelle version sera publiée sur cette page avec une nouvelle date de version. Lorsqu’un changement est important, chaque site Omni vous demandera de lire et d’accepter la nouvelle version, et nous pourrons aussi vous en aviser par courriel. Si vous continuez à utiliser les Produits après l’entrée en vigueur d’un changement, vous acceptez la nouvelle version; si vous n’êtes pas d’accord, cessez de les utiliser. Les changements ne s’appliquent pas aux différends déjà entamés.</p>
+
+<h3 id="fr-t21">21. Droit applicable et tribunaux</h3>
+<p>Les présentes sont régies par les lois de la province de Québec et les lois fédérales du Canada qui s’y appliquent, sans égard aux règles de conflit de lois. La Convention des Nations Unies sur les contrats de vente internationale de marchandises ne s’applique pas. Sous réserve du droit impératif d’un consommateur d’intenter une poursuite dans son lieu de résidence, les tribunaux du district judiciaire de Montréal (Québec) ont compétence exclusive.</p>
+
+<h3 id="fr-t22">22. Langue</h3>
+<p>Les présentes sont offertes en français et en anglais, et les deux versions ont la même valeur. Conformément à la <em>Charte de la langue française</em>, la version française est présentée en premier. Si vous acceptez la version anglaise, vous demandez expressément que cette entente et les documents qui s’y rattachent soient rédigés en anglais.</p>
+
+<h3 id="fr-t23">23. Dispositions générales</h3>
+<p>Les présentes, avec la Politique de confidentialité et de témoins et tout avis de licence inclus dans un Produit, constituent l’entente complète entre vous et nous au sujet des Produits. Si une clause est jugée invalide, elle est limitée dans la mesure minimale nécessaire et le reste demeure en vigueur. Le fait de ne pas exercer un droit n’est pas une renonciation à ce droit. Vous ne pouvez pas céder cette entente; nous pouvons la céder dans le cadre d’une réorganisation ou d’une vente des Produits. Nous ne sommes pas responsables des retards ou manquements causés par des événements hors de notre contrôle raisonnable.</p>
+
+<h3 id="fr-t24">24. Nous joindre</h3>
+<p>Global Warning Networks, à l’attention d’Erik Boivin : <a href="mailto:erik.boivin@proton.me">erik.boivin@proton.me</a> (adresse en texte : erik.boivin@proton.me).</p>
+<p class="end">Fin de la partie 1. Vous pouvez maintenant cocher la case ci-dessous.</p>
+  </div>
+  <label class="agree locked" data-agree="eula">
+    <input type="checkbox" id="agree-eula-fr" data-check="eula" disabled>
+    <span>J’ai lu et j’accepte le <strong>contrat de licence d’utilisateur final et les conditions d’utilisation</strong>. Je comprends que les Produits sont expérimentaux, destinés aux utilisateurs avancés, fournis sans aucune garantie et utilisés à mes propres risques, y compris le risque de perte de données.
+      <span class="hint" data-hint="eula">Faites défiler la partie 1 jusqu’à la fin pour activer cette case.</span></span>
+  </label>
+</section>
+
+<section class="part" id="fr-privacy" aria-labelledby="fr-privacy-h">
+  <div class="part-h"><h2 id="fr-privacy-h">Partie 2 · Politique de confidentialité et de témoins</h2><span class="progress" data-progress="privacy">Faites défiler jusqu’à la fin pour accepter</span></div>
+  <div class="doc" data-doc="privacy" tabindex="0" role="region" aria-label="Politique de confidentialité et de témoins">
+
+<h3 id="fr-p1">1. Qui est responsable</h3>
+<p>Global Warning Networks, exploitée par Erik Boivin, est responsable des renseignements personnels décrits ici. La personne responsable de la protection des renseignements personnels est <strong>Erik Boivin</strong>, que l’on peut joindre à <a href="mailto:erik.boivin@proton.me">erik.boivin@proton.me</a> (erik.boivin@proton.me). Cette politique vise à respecter la <em>Loi sur la protection des renseignements personnels dans le secteur privé</em> du Québec (telle que modifiée par la Loi 25), la <em>LPRPDE</em> du Canada et, pour les personnes dans l’Union européenne ou au Royaume-Uni, le RGPD.</p>
+
+<h3 id="fr-p2">2. Les applications fonctionnent sur votre ordinateur</h3>
+<p>Omni, OmniBots, OmniOne et OmniVerse fonctionnent localement sur votre propre ordinateur. Ce qu’ils y font, y compris vos fichiers, projets, requêtes, conversations, clés d’API et paramètres, reste sur votre ordinateur et <strong>ne nous est pas transmis</strong>, sauf si vous utilisez une fonction qui se connecte à nos services en ligne (décrite ci-dessous).</p>
+<p>Lorsque vous branchez un fournisseur d’IA ou un autre service tiers, les applications envoient vos requêtes et vos données <strong>directement à ce fournisseur</strong>, sous votre propre compte. C’est la politique de confidentialité de ce fournisseur qui s’applique, pas celle-ci. Lisez-la avant de le brancher.</p>
+
+<h3 id="fr-p3">3. Ce que nous recueillons</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Renseignement</th><th>Quand</th></tr></thead>
+  <tbody>
+    <tr><td>Nom affiché, adresse courriel, mot de passe (conservé seulement sous forme de hachage à sens unique, Argon2id si disponible), statut de vérification, date d’inscription</td><td>Lorsque vous créez un compte Omni</td></tr>
+    <tr><td>Version des présentes que vous avez acceptée et à quel moment</td><td>Lorsque vous vous inscrivez ou appuyez sur Accepter ici</td></tr>
+    <tr><td>Journal des connexions : courriel saisi, réussite ou échec, motif, source (site ou application), adresse IP, heure</td><td>À chaque tentative de connexion, pour la sécurité</td></tr>
+    <tr><td>Appareils branchés : nom de l’ordinateur, système d’exploitation, version de l’application, dernière adresse IP, dernière utilisation</td><td>Lorsque vous branchez une application à votre compte</td></tr>
+    <tr><td>Messages et fichiers du clavardage du site, messages et commentaires du forum</td><td>Lorsque vous utilisez ces fonctions</td></tr>
+    <tr><td>Recherches et activité des ordinateurs infonuagiques, y compris les journaux du trafic Web passé par le mandataire</td><td>Lorsque vous utilisez la recherche ou les ordinateurs infonuagiques d’OmniOne</td></tr>
+    <tr><td>Compteur de visites : adresse IP, agent utilisateur du navigateur, page, page d’origine, identifiant du compte si connecté, heure</td><td>Lorsque vous chargez le site d’OmniVerse</td></tr>
+    <tr><td>Journaux du serveur : adresse IP, agent utilisateur du navigateur, pages demandées, erreurs</td><td>À chaque requête vers nos sites (conservés par notre hébergeur)</td></tr>
+    <tr><td>Messages que vous nous envoyez</td><td>Lorsque vous nous écrivez</td></tr>
+  </tbody>
+</table></div>
+<p>Nous ne recueillons aucun renseignement de paiement, nous n’utilisons aucun traceur publicitaire ou analytique, et nous ne vendons ni ne louons de renseignements personnels.</p>
+
+<h3 id="fr-p4">4. Pourquoi nous l’utilisons</h3>
+<ul>
+  <li>Pour créer et gérer votre compte et vous connecter à tous les Produits (exécution de notre contrat avec vous).</li>
+  <li>Pour fournir les services en ligne que vous demandez : clavardage, forum, recherche, ordinateurs infonuagiques et connexion d’appareils (contrat).</li>
+  <li>Pour assurer la sécurité des services, prévenir les abus et la fraude, limiter l’utilisation et enquêter sur les incidents (notre intérêt légitime et nos obligations légales).</li>
+  <li>Pour compter les visites de façon globale et améliorer les sites (intérêt légitime).</li>
+  <li>Pour envoyer les courriels liés au compte : codes de vérification, réinitialisation du mot de passe, avis de changements importants (contrat).</li>
+  <li>Pour consigner votre acceptation des présents documents et vos choix de témoins (obligation légale et intérêt légitime).</li>
+  <li>Pour respecter la loi et répondre aux demandes légitimes des autorités.</li>
+</ul>
+<p>Nous utilisons les renseignements personnels uniquement à ces fins, ou à une autre fin avec votre consentement ou lorsque la loi le permet.</p>
+
+<h3 id="fr-p5">5. Témoins (cookies) et technologies semblables</h3>
+<p>Nous utilisons seulement les témoins nécessaires au fonctionnement des sites et à la mémorisation de vos choix, y compris votre langue. Nous n’utilisons aucun témoin publicitaire, de pistage ou d’analyse.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Nom</th><th>But</th><th>Type</th><th>Durée</th></tr></thead>
+  <tbody>
+    <tr><td><code>omni_sid</code></td><td>Garde votre session ouverte dans votre compte Omni (sites OmniOne et OmniVerse). Sécurisé, HttpOnly.</td><td>Essentiel</td><td>Jusqu’à 30 jours</td></tr>
+    <tr><td><code>gwn_legal</code></td><td>Mémorise la version des présents documents que vous avez acceptée ou refusée et votre choix de témoins, sur tous les sites <code>*.globalwarningnetworks.com</code>.</td><td>Essentiel</td><td>12 mois</td></tr>
+    <tr><td><code>gwn_lang</code></td><td>Mémorise si vous consultez les sites Omni en français ou en anglais (déterminé par la langue de votre navigateur la première fois, puis par votre choix), sur tous les sites <code>*.globalwarningnetworks.com</code>.</td><td>Fonctionnel</td><td>12 mois</td></tr>
+  </tbody>
+</table></div>
+<p><strong>Témoins facultatifs :</strong> il n’y en a aucun pour l’instant. Si nous en ajoutons un jour, ils resteront désactivés à moins que vous ne les autorisiez sur cette page, et vous pourrez changer d’avis en tout temps.</p>
+<p><strong>Contenu de tiers :</strong> certaines pages chargent des polices ou des styles depuis d’autres serveurs : Google Fonts (<code>fonts.googleapis.com</code>, <code>fonts.gstatic.com</code>) sur les sites d’Omni, d’OmniOne et d’OmniVerse, le script Tailwind CSS (<code>cdn.tailwindcss.com</code>) sur le site d’Omni, et la bibliothèque 3D three.js (<code>cdn.jsdelivr.net</code>) sur le site d’OmniVerse. Les téléchargements et les vérifications de version passent par GitHub (<code>github.com</code>, <code>raw.githubusercontent.com</code>). Ces serveurs reçoivent votre adresse IP et les détails de votre navigateur au chargement de la page, selon leurs propres politiques de confidentialité. Vous pouvez les bloquer avec votre navigateur ou un bloqueur de contenu; les pages fonctionneront encore, avec une présentation plus simple.</p>
+<p>Vous pouvez supprimer les témoins en tout temps dans les paramètres de votre navigateur. Bloquer les témoins essentiels empêchera la connexion de fonctionner.</p>
+
+<h3 id="fr-p6">6. Avec qui nous le partageons</h3>
+<p>Nous ne partageons les renseignements personnels qu’avec :</p>
+<ul>
+  <li>nos fournisseurs qui hébergent et exploitent les sites et services pour nous : l’hébergement Web (FastComet), le serveur qui fait fonctionner la recherche et les ordinateurs infonuagiques, et l’envoi de courriels. Ils ne peuvent utiliser ces renseignements que pour nous fournir leur service;</li>
+  <li>votre propre ordinateur, lorsque votre application OmniOne récupère les messages que vous avez envoyés depuis le site;</li>
+  <li>les autorités, lorsque la loi l’exige, ou pour protéger des droits, la sécurité et la sûreté;</li>
+  <li>un acheteur ou un successeur si les Produits sont réorganisés ou vendus, selon la présente politique.</li>
+</ul>
+<p>Les messages du forum et votre nom affiché sur ceux-ci sont visibles par les autres utilisateurs.</p>
+
+<h3 id="fr-p7">7. Où c’est conservé</h3>
+<p>Nos serveurs et ceux de nos fournisseurs peuvent se trouver à l’extérieur du Québec et du Canada, notamment aux États-Unis, où les autorités locales peuvent avoir accès aux données selon leurs lois. Avant que des renseignements soient communiqués à l’extérieur du Québec, nous évaluons s’ils bénéficieront d’une protection adéquate, comme l’exige la loi québécoise, et nous les protégeons par contrat.</p>
+
+<h3 id="fr-p8">8. Combien de temps nous le gardons</h3>
+<ul>
+  <li>Renseignements du compte : tant que le compte est ouvert, puis supprimés ou anonymisés dans les 90 jours suivant sa fermeture, sauf ce que la loi nous oblige à garder.</li>
+  <li>Fichiers du clavardage du site : supprimés automatiquement après la livraison (actuellement 7 jours).</li>
+  <li>Journaux des connexions, des visites, des appareils et des services : aussi longtemps que nécessaire pour la sécurité et la prévention des abus, et au plus 24 mois.</li>
+  <li>Preuve de votre acceptation des présents documents : tant que votre compte existe, plus le temps nécessaire pour prouver l’entente.</li>
+</ul>
+
+<h3 id="fr-p9">9. Sécurité et incidents</h3>
+<p>Nous protégeons les renseignements par HTTPS, des mots de passe hachés, une protection contre la falsification des formulaires, des limites d’utilisation, des dossiers de serveur restreints et un accès limité. Aucun système n’est parfaitement sûr, et nous ne pouvons garantir la sécurité des renseignements transmis sur Internet. Si un incident de confidentialité présente un risque de préjudice sérieux, nous aviserons les personnes concernées et la Commission d’accès à l’information du Québec (ainsi que toute autre autorité exigée par la loi), et nous tiendrons un registre des incidents.</p>
+
+<h3 id="fr-p10">10. Vos droits</h3>
+<p>Vous pouvez demander d’accéder aux renseignements personnels que nous détenons à votre sujet, de les faire rectifier, d’en obtenir une copie dans un format technologique structuré et couramment utilisé, de les faire supprimer, de retirer votre consentement, de vous opposer à une utilisation, ou de demander la cessation de leur diffusion ou leur désindexation lorsque la loi le permet. Écrivez-nous à erik.boivin@proton.me. Nous répondons dans les 30 jours et pourrions devoir confirmer votre identité. Retirer votre consentement ou supprimer votre compte peut empêcher la prestation de certains services.</p>
+
+<h3 id="fr-p11">11. Enfants</h3>
+<p>Les Produits sont réservés aux adultes. Nous ne recueillons pas sciemment de renseignements auprès de personnes de moins de 18 ans. Si vous croyez qu’une personne mineure nous a transmis des renseignements, écrivez-nous et nous les supprimerons.</p>
+
+<h3 id="fr-p12">12. Décisions automatisées</h3>
+<p>Nous ne prenons aucune décision à votre sujet fondée exclusivement sur un traitement automatisé de vos renseignements personnels. Les limites de sécurité automatiques, comme le blocage après plusieurs échecs de connexion, s’appliquent également à tous et peuvent être révisées sur demande.</p>
+
+<h3 id="fr-p13">13. Modification de la politique</h3>
+<p>Nous publierons toute mise à jour ici avec une nouvelle date de version et, pour les changements importants, nous vous demanderons d’accepter de nouveau au moyen de l’avis affiché sur chaque site Omni.</p>
+
+<h3 id="fr-p14">14. Nous joindre et plaintes</h3>
+<p>Questions ou demandes : Erik Boivin, responsable de la protection des renseignements personnels, erik.boivin@proton.me. Si notre réponse ne vous satisfait pas, vous pouvez porter plainte auprès de la Commission d’accès à l’information du Québec (cai.gouv.qc.ca), du Commissariat à la protection de la vie privée du Canada (priv.gc.ca) ou, dans l’UE ou au Royaume-Uni, de votre autorité locale de protection des données.</p>
+<p class="end">Fin de la partie 2. Vous pouvez maintenant cocher la case ci-dessous.</p>
+  </div>
+  <label class="agree locked" data-agree="privacy">
+    <input type="checkbox" id="agree-privacy-fr" data-check="privacy" disabled>
+    <span>J’ai lu et j’accepte la <strong>Politique de confidentialité et de témoins</strong>.
+      <span class="hint" data-hint="privacy">Faites défiler la partie 2 jusqu’à la fin pour activer cette case.</span></span>
+  </label>
+</section>
+</div>
+
+<!-- ===================================================================== -->
+<!--                          ACCEPT / REFUSE (both)                       -->
+<!-- ===================================================================== -->
+<section class="consent" id="consent" aria-labelledby="consent-h">
+  <h2 id="consent-h"><span data-lang="en">Accept or refuse</span><span data-lang="fr" lang="fr" hidden>Accepter ou refuser</span></h2>
+  <p data-lang="en">Read both parts to the end and tick both boxes to accept. Your choice is saved in the essential <code>gwn_legal</code> cookie and applies on every Omni website. You can come back and change it at any time.</p>
+  <p data-lang="fr" lang="fr" hidden>Lisez les deux parties jusqu’à la fin et cochez les deux cases pour accepter. Votre choix est enregistré dans le témoin essentiel <code>gwn_legal</code> et s’applique sur tous les sites Omni. Vous pouvez revenir le changer en tout temps.</p>
+  <div class="cookie-choice" role="radiogroup" aria-labelledby="cookie-h">
+    <strong id="cookie-h"><span data-lang="en">Cookies</span><span data-lang="fr" lang="fr" hidden>Témoins</span></strong>
+    <label><input type="radio" name="cookies" value="essential" checked> <span><span data-lang="en">Essential cookies only (recommended; the sites need nothing else today)</span><span data-lang="fr" lang="fr" hidden>Témoins essentiels seulement (recommandé; les sites n’ont besoin de rien d’autre pour l’instant)</span></span></label>
+    <label><input type="radio" name="cookies" value="all"> <span><span data-lang="en">Essential and optional cookies (none are in use yet)</span><span data-lang="fr" lang="fr" hidden>Témoins essentiels et facultatifs (aucun n’est encore utilisé)</span></span></label>
+  </div>
+  <div class="btns">
+    <button type="button" class="btn primary" id="btn-accept" disabled><span data-lang="en">Accept and continue</span><span data-lang="fr" lang="fr" hidden>Accepter et continuer</span></button>
+    <button type="button" class="btn" id="btn-refuse"><span data-lang="en">Refuse</span><span data-lang="fr" lang="fr" hidden>Refuser</span></button>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+</section>
+
+<footer class="foot">
+  <p>© 2026 Global Warning Networks · <a href="https://omni.globalwarningnetworks.com/">Omni</a> · <a href="https://omnibots.globalwarningnetworks.com/">OmniBots</a> · <a href="https://omnione.globalwarningnetworks.com/">OmniOne</a> · <a href="https://omniverse.globalwarningnetworks.com/">OmniVerse</a></p>
+</footer>
+</div>
+
+<script src="/legal/legal.js"></script>
+</body>
+</html>

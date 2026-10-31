@@ -10,9 +10,11 @@ HOST="${OMNIVERSE_SSH:-fastcomet}"
 DEST="omniverse.globalwarningnetworks.com"
 cd "$(dirname "$0")/.."
 
-ssh -o BatchMode=yes "$HOST" "mkdir -p $DEST/js $DEST/api $DEST/_private/lib $DEST/_private/templates"
-scp -q -o BatchMode=yes index.html style.css pages.css login.php logout.php connect.php account.php "$HOST:$DEST/"
+ssh -o BatchMode=yes "$HOST" "mkdir -p $DEST/js $DEST/api $DEST/legal $DEST/_private/lib $DEST/_private/templates"
+scp -q -o BatchMode=yes index.html style.css pages.css login.php logout.php connect.php account.php \
+  favicon.ico icon.svg apple-touch-icon.png icon-192.png icon-512.png site.webmanifest "$HOST:$DEST/"
 scp -q -o BatchMode=yes js/*.js "$HOST:$DEST/js/"
+scp -q -o BatchMode=yes legal/index.html legal/legal.js legal/gwn-consent.js legal/gwn-lang.js "$HOST:$DEST/legal/"
 scp -q -o BatchMode=yes api/index.php "$HOST:$DEST/api/"
 scp -q -o BatchMode=yes _private/.htaccess _private/bootstrap.php _private/page.php _private/config.example.php "$HOST:$DEST/_private/"
 scp -q -o BatchMode=yes _private/lib/omniverse.php "$HOST:$DEST/_private/lib/"
@@ -24,7 +26,7 @@ ssh -o BatchMode=yes "$HOST" "cd $DEST && {
   echo >> .htaccess.new
   cat .htaccess.omniverse >> .htaccess.new
   mv .htaccess.new .htaccess && rm .htaccess.omniverse
-  find . -path ./cgi-bin -prune -o -path ./.well-known -prune -o -type f -name '*.php' -print -o -type f -name '*.js' -print -o -type f -name '*.css' -print -o -type f -name '*.html' -print | xargs chmod 644
+  find . -path ./cgi-bin -prune -o -path ./.well-known -prune -o -type f -name '*.php' -print -o -type f -name '*.js' -print -o -type f -name '*.css' -print -o -type f -name '*.html' -print -o -type f \( -name '*.png' -o -name '*.ico' -o -name '*.svg' -o -name '*.webmanifest' \) -print | xargs chmod 644
   chmod 600 _private/config.php 2>/dev/null || true
   chmod 700 _private
 }"

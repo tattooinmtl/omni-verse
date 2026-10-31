@@ -343,6 +343,9 @@ function enterWorld({ spectate = false } = {}) {
   addSky();
 
   city = new City(scene, state.world, state.avatars);
+  // New shaders compile in the background (KHR_parallel_shader_compile)
+  // instead of freezing the first frame that shows them.
+  city.precompile = (obj) => renderer.compileAsync(obj, camera, scene).catch(() => {});
   player = new Player(camera, canvas, city);
   player.sens = display.sens;
   if (selfRecord) player.setAvatar(buildAvatar(selfRecord.spec), scene);
@@ -374,6 +377,13 @@ function enterWorld({ spectate = false } = {}) {
   updateMode();
   bindInput(canvas);
   window.omniverse = { player, city, npcs, composer, ecoView, findTarget, life, interact: (t = findTarget()) => t && interact(t) }; // console handle for debugging
+  // Everything that exists now, compiled before the far parts get culled;
+  // then again every few seconds, so things added later (lobby screens, new
+  // blocks, kiosks) get their shaders in the background, not on first sight.
+  let compiling = false;
+  const warm = () => { if (compiling) return; compiling = true; renderer.compileAsync(scene, camera).catch(() => {}).finally(() => { compiling = false; }); };
+  warm();
+  setInterval(warm, 4000);
   $("statsBtn").onclick = () => showStats();
   $("lifeTag").onclick = () => api("/api/life/pause", { paused: !life.paused }).then(pollLife).catch(() => {});
   $("walletTag").onclick = () => openInventory();
@@ -474,7 +484,7 @@ function loop() {
   for (const o of followCamera) o.position.copy(camera.position);
 
   interiorTimer -= dt;
-  if (interiorTimer <= 0) { city.updateInteriors(player.pos); interiorTimer = 0.25; }
+  if (interiorTimer <= 0) { city.updateInteriors(player.pos); city.cull(camera.position); interiorTimer = 0.25; }
   const loc = city.locate(player.pos);
   if (loc) city.showFloorLabels(loc.b, loc.floor);
   const zone = !loc && city.zones.find((z) => Math.hypot(z.x - player.pos.x, z.z - player.pos.z) < z.r);

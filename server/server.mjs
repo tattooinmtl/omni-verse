@@ -406,10 +406,35 @@ async function serveStatic(res, url) {
   }
 }
 
+// Save everything, then stop. Ctrl+C, a kill signal and the tray's Exit all
+// come here, so the economy and the work system both get to save.
+function shutdown(why) {
+  console.log(`shutting down (${why})`);
+  for (const f of [eco.flush, work.flush]) { try { f(); } catch (e) { console.error("save on exit failed:", e.message); } }
+  process.exit(0);
+}
+for (const sig of ["SIGINT", "SIGTERM", "SIGBREAK"]) process.once(sig, () => shutdown(sig));
+
+// The tray launcher (tray/omniverse-tray.ps1) starts the server with a random
+// OMNIVERSE_CONTROL_TOKEN; only a request carrying it may stop the server.
+const CONTROL = String(process.env.OMNIVERSE_CONTROL_TOKEN || "");
+function control(req, res, url) {
+  const given = String(req.headers["x-omniverse-control"] || "");
+  const ok = CONTROL.length >= 32 && given.length === CONTROL.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(CONTROL));
+  if (!ok) return send(res, 403, { error: "forbidden" });
+  if (req.method === "POST" && url.pathname === "/api/control/shutdown") {
+    send(res, 200, { stopping: true });
+    setTimeout(() => shutdown("tray"), 100);
+    return;
+  }
+  return send(res, 404, { error: "not found" });
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   try {
     if (!trusted(req)) return send(res, 403, { error: "untrusted origin" });
+    if (url.pathname.startsWith("/api/control/")) return control(req, res, url);
     if (url.pathname.startsWith("/api/")) return await api(req, res, url);
     return await serveStatic(res, url);
   } catch (e) {

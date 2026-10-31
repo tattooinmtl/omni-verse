@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 define('OMV_PRIVATE', __DIR__);
-define('OMV_VERSION', '1.0.0');
+define('OMV_VERSION', '1.0.1');
 
 $omvConfigFile = getenv('OMNIVERSE_CONFIG') ?: (__DIR__ . '/config.php');
 if (!is_file($omvConfigFile)) {
@@ -29,6 +29,24 @@ $omvLib = rtrim((string) ($GLOBALS['OMNI_CONFIG']['omnione_lib'] ?? ''), '/');
 foreach (['core', 'security', 'auth', 'connect'] as $f) require "$omvLib/$f.php";
 require __DIR__ . '/lib/omniverse.php';
 
+/* The page language: the gwn_lang cookie shared by every Omni site, else the
+ * browser's first preference. /legal/gwn-lang.js saves the cookie. */
+function omv_lang(): string
+{
+    static $lang = null;
+    if ($lang !== null) return $lang;
+    $c = $_COOKIE['gwn_lang'] ?? '';
+    if ($c === 'fr' || $c === 'en') return $lang = $c;
+    $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? ''));
+    return $lang = str_starts_with(ltrim($accept), 'fr') ? 'fr' : 'en';
+}
+
+/* The same text in English or French, for the current page language. */
+function tr(string $en, string $fr): string
+{
+    return omv_lang() === 'fr' ? $fr : $en;
+}
+
 /* Start a page: headers, session, a friendly error page. */
 function omv_boot_page(): void
 {
@@ -38,7 +56,8 @@ function omv_boot_page(): void
         error_log('[omniverse] ' . $e);
         if (!headers_sent()) http_response_code(500);
         echo config('env') === 'production'
-            ? '<!doctype html><meta charset="utf-8"><title>Error</title><p style="font-family:sans-serif">Something went wrong on our side. Please try again in a moment.</p>'
+            ? '<!doctype html><meta charset="utf-8"><title>' . tr('Error', 'Erreur') . '</title><p style="font-family:sans-serif">'
+              . tr('Something went wrong on our side. Please try again in a moment.', 'Un problème est survenu de notre côté. Réessayez dans un instant.') . '</p>'
             : '<pre>' . e((string) $e) . '</pre>';
     });
 }
