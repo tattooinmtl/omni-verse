@@ -12,7 +12,7 @@ import { economyConfig } from "./settings.mjs";
 import { getWorld } from "./world.mjs";
 import * as eco from "./economy.mjs";
 import * as work from "./work.mjs";
-import { controlledId, isActive, meet, noteViewer, placeItem, record, viewerAlive, visit } from "./life.mjs";
+import { canMeet, controlledId, isActive, meet, noteViewer, placeItem, record, viewerAlive, visit } from "./life.mjs";
 import {
   DESKS, STREET, computeLayout, deskSpot, deskXs, doorSpot, ecoLayout, exchangeSpot, isOutside, kioskFront, lotFront,
   randomLotSpot, randomRoomSpot, randomStreetPoint, route, yawInto, yawIntoLot,
@@ -259,16 +259,20 @@ function step(b, dt, goals) {
 const onStreet = (b) => !b.inside && !b.lot && !b.meeting && !b.lotGoal && b.mode !== "channel" && !isOutside(b) && Math.abs(b.z) < STREET;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Two agents within 8 m on the street stop, if they haven't met recently.
+// life.canMeet uses the same cooldown as the meeting itself, so they never
+// stop only to be turned away (the old 3 min here vs 12 min there did that).
 function findMeetings() {
   if (meetingNow || !isActive()) return;
   const free = [...bots.values()].filter(onStreet);
   for (let i = 0; i < free.length; i++) {
     for (let j = i + 1; j < free.length; j++) {
       const a = free[i], b = free[j];
-      if (Math.hypot(a.x - b.x, a.z - b.z) > 6) continue;
+      if (Math.hypot(a.x - b.x, a.z - b.z) > 8) continue;
       const key = [a.id, b.id].sort().join("|");
       if ((meetCooldown.get(key) || 0) > Date.now()) continue;
-      meetCooldown.set(key, Date.now() + 3 * 60_000);
+      meetCooldown.set(key, Date.now() + 20_000); // don't re-ask every second while they pass
+      if (!canMeet(a.id, b.id).stop) continue;
       startMeeting(a, b);
       return;
     }
@@ -296,7 +300,7 @@ async function startMeeting(a, b) {
       goToLot(a, a.id);
       goToLot(b, a.id, () => visit(a.id, b.id).then((v) => { if (v.lines[0]) say(b, v.lines[0].say, 9000); }).catch(() => {}));
     }
-  } catch { /* cooldown, budget or a provider error: they just walk on */ }
+  } catch { /* they met moments ago (another view started it): they just walk on */ }
   finally {
     a.meeting = b.meeting = null;
     if (a.say?.text === "…") say(a, null);

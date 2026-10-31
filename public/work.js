@@ -365,7 +365,14 @@ export class Terminal {
     this.timers = [];
     this.audio = null;
     this.onKey = (e) => this.key(e);
-    this.out.addEventListener("scroll", () => this.markMore());
+    // Scrolling only re-checks which lines are cut; it never changes the
+    // layout under the wheel (that made the text jump and vanish).
+    let scrollQueued = false;
+    this.out.addEventListener("scroll", () => {
+      if (scrollQueued) return;
+      scrollQueued = true;
+      requestAnimationFrame(() => { scrollQueued = false; this.markMore(true); });
+    }, { passive: true });
   }
 
   // b: building, desk: index, ws: work state, corners: the glass's corners in
@@ -517,34 +524,43 @@ export class Terminal {
   }
 
   // Fade the bottom edge only while there is more below it.
-  markMore() {
+  // scrolled: called while scrolling, so only visibility may change, never
+  // sizes: resizing the box under the wheel made the content jump.
+  markMore(scrolled = false) {
     const o = this.out;
     const check = () => {
-      if (this.root.classList.contains("inworld")) {
+      const lh = parseFloat(getComputedStyle(o).lineHeight) || 20;
+      if (!scrolled && this.root.classList.contains("inworld")) {
         o.style.height = ""; o.style.flex = "";
-        const lh = parseFloat(getComputedStyle(o).lineHeight) || 20;
         o.style.height = `${Math.floor(o.clientHeight / lh) * lh}px`;
         o.style.flex = "none";
       }
-      // A code box ends on a whole line wherever it sits on the glass.
       const bottom = o.getBoundingClientRect().bottom;
-      for (const code of o.querySelectorAll(".t-code")) {
-        code.style.maxHeight = ""; code.style.display = "";
-        const lhc = parseFloat(getComputedStyle(code).lineHeight) || 20;
-        const room = bottom - code.getBoundingClientRect().top;
-        if (room < lhc) code.style.display = "none"; // nothing whole fits: show it after scrolling
-        else if (room < code.scrollHeight) code.style.maxHeight = `${Math.floor(room / lhc) * lhc}px`;
+      // A code box ends on a whole line wherever it sits on the glass when the
+      // screen opens; after that the glass simply clips it.
+      if (!scrolled) {
+        for (const code of o.querySelectorAll(".t-code")) {
+          code.style.maxHeight = "";
+          const lhc = parseFloat(getComputedStyle(code).lineHeight) || 20;
+          const room = bottom - code.getBoundingClientRect().top;
+          if (room >= lhc && room < code.scrollHeight) code.style.maxHeight = `${Math.floor(room / lhc) * lhc}px`;
+        }
       }
-      // Any line the glass would cut in half waits for the scroll instead.
+      // A single line the glass would cut in half waits for the scroll
+      // instead. Tall blocks (the chat, a log, a report, code) are never
+      // hidden: the glass clips them like any screen. Hiding them made the
+      // whole chat vanish as soon as it was scrolled.
       for (const el of o.children) {
-        if (el.classList.contains("t-code")) continue;
+        if (el.classList.contains("t-code")) { el.style.visibility = ""; continue; }
         const r = el.getBoundingClientRect();
-        el.style.visibility = r.top < bottom - 1 && r.bottom > bottom + 1 ? "hidden" : "";
+        const oneLine = r.height <= lh * 1.6;
+        el.style.visibility = oneLine && r.top < bottom - 1 && r.bottom > bottom + 1 ? "hidden" : "";
       }
       const more = o.scrollTop + o.clientHeight < o.scrollHeight - 2;
       o.classList.toggle("more", more);
       this.root.classList.toggle("has-more", more);
     };
+    if (scrolled) { check(); return; }
     requestAnimationFrame(check);
     setTimeout(check, 400); // again once the teletype has laid the lines out
   }

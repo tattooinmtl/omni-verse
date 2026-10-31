@@ -518,25 +518,56 @@ async function line(a, situation, transcript, ask) {
 }
 
 const meeting = new Set();
+const lastMeet = (key) => { for (let i = events.length - 1; i >= 0; i--) if (events[i].type === "meet" && pairKey(...events[i].agents) === key) return events[i]; return null; };
+
+// Should these two stop at all, and can they hold a real (LLM) conversation?
+// The street asks first, so agents never stop just to be turned away.
+export function canMeet(aId, bId) {
+  const list = listAvatars();
+  const a = list.find((x) => x.id === aId), b = list.find((x) => x.id === bId);
+  if (!a || !b || a.id === b.id || !active()) return { stop: false };
+  const key = pairKey(a.id, b.id), last = lastMeet(key);
+  if (meeting.has(key) || (last && Date.now() - last.t < cfg().meetCooldownMin * 60_000)) return { stop: false };
+  return { stop: true, talk: available(a) && available(b) && budgetLeft() >= 3 };
+}
+
+// A greeting without the LLM, for when a full conversation isn't possible
+// (budget, a provider out of credits or sitting out, a failed call). It still
+// counts as a meeting, so it shows in the neural map and their relationship.
+export function greet(aId, bId, why = "") {
+  const list = listAvatars();
+  const a = list.find((x) => x.id === aId), b = list.find((x) => x.id === bId);
+  if (!a || !b) return null;
+  const hi = (x, y) => ({ who: x.id, name: x.spec.name, say: text(`Hey ${y.spec.name}! ${x.spec.motto || "Good to see you."}`, 300), affinity: 1, invite: false });
+  return record({ type: "meet", agents: [a.id, b.id], lines: [hi(a, b), hi(b, a)], affinity: 1, invite: false, quick: true, ...(why ? { note: why.slice(0, 120) } : {}) });
+}
+
 export async function meet(aId, bId) {
   const list = listAvatars();
   const a = list.find((x) => x.id === aId), b = list.find((x) => x.id === bId);
   if (!a || !b || a.id === b.id) throw Object.assign(new Error("unknown agents"), { status: 404 });
   if (!active()) throw Object.assign(new Error("the simulation is paused"), { status: 409 });
   const key = pairKey(a.id, b.id);
-  const last = [...events].reverse().find((e) => e.type === "meet" && pairKey(...e.agents) === key);
+  const last = lastMeet(key);
   if (last && Date.now() - last.t < cfg().meetCooldownMin * 60_000) throw Object.assign(new Error("they talked recently"), { status: 429 });
-  if (meeting.has(key) || !available(a) || !available(b) || budgetLeft() < 3) throw Object.assign(new Error("not now"), { status: 429 });
+  if (meeting.has(key)) throw Object.assign(new Error("already talking"), { status: 429 });
+  // No budget or a provider sitting out: they still greet each other.
+  if (!available(a) || !available(b) || budgetLeft() < 3) return greet(a.id, b.id, "no LLM conversation right now");
   meeting.add(key);
   try {
     const where = `You bump into ${b.spec.name} (a ${b.spec.species}, agent ${b.provider}/${b.model}) on the neon street.`;
     const back = `${a.spec.name} (a ${a.spec.species}, agent ${a.provider}/${a.model}) stops you on the neon street.`;
     const lines = [];
-    lines.push(await line(a, where, lines, "Open the conversation."));
-    lines.push(await line(b, back, lines, "Reply."));
-    lines.push(await line(a, where, lines, "Wrap up. You may invite them to visit your house (invite: true) if you feel like it."));
+    try {
+      lines.push(await line(a, where, lines, "Open the conversation."));
+      lines.push(await line(b, back, lines, "Reply."));
+      lines.push(await line(a, where, lines, "Wrap up. You may invite them to visit your house (invite: true) if you feel like it."));
+    } catch (e) {
+      // A call failed partway: keep what was said, or at least the greeting.
+      if (lines.length < 2) { meeting.delete(key); return greet(a.id, b.id, `conversation failed: ${String(e.message).slice(0, 80)}`); }
+    }
     const affinity = Math.round(lines.reduce((s, l) => s + l.affinity, 0) / 1.5);
-    const invite = lines[2].invite;
+    const invite = lines[2]?.invite === true;
     return record({ type: "meet", agents: [a.id, b.id], lines, affinity, invite, host: invite ? a.id : undefined });
   } finally {
     meeting.delete(key);
