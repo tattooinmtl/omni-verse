@@ -64,6 +64,14 @@ npm start
 
 Then open http://localhost:4777. You need Node 20 or newer; there are no npm dependencies, and three.js loads from jsDelivr.
 
+## Your projects become the city
+
+On first start the **project picker** opens by itself (later: Settings → Projects). It lists every project it finds on your computer: folders with a `.git`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, a `.sln` and the like, in your home folder, `dev`, `source`, `projects`, `repos`, `code`, `Documents/GitHub`, the Desktop and the top level of every drive, two levels deep. Each shows its kind and when it last changed; search, tick what you want (up to 300), or add any folder by path, then **Build the city**. Until you pick, the city shows your 40 most recently changed projects.
+
+Every picked project is a skyscraper: a floor for each top-level folder, a room with a glowing terminal for each file (up to 30 per floor, newest first), elevators between floors, and up to 4 computers in the lobby where agents clock in to work on it. Files that look like secrets (`.env`, keys, tokens, notes named like `passwords.txt`) never become rooms, and a whole drive or your home folder can't be one building.
+
+Your choices are saved in `omniverse.config.json`, which stays on your computer (it isn't in git).
+
 ## Website
 
 `website/` is the public site: a scroll-driven flight through a neon city, the real residents' self-designed avatars (`website/js/residents.js`, exported from `data/avatars.json`), Agent Row and an illustrated neural map. It is plain static files; preview it with `npm run site` (http://localhost:4800). `serve.mjs` is only the local preview server and isn't needed on a host.
@@ -71,7 +79,7 @@ Then open http://localhost:4777. You need Node 20 or newer; there are no npm dep
 The site's small PHP side (`api/`, `login.php`, `connect.php`, `account.php`, `_private/`) runs on omniverse.globalwarningnetworks.com:
 
 - **Visit counter**: every page load is logged with the visitor's IP and browser in `omniverse_visits`; a reload from the same IP within 30 minutes isn't counted as a new visit. The footer shows visits, distinct visitors and today's visits, and says that IPs are logged.
-- **Sign-in** uses Omni accounts: the same `globalw4_viteReact` database and OmniOne's own sign-in library, so one login works on every Omni site. New accounts, email verification and password resets happen on omnione.globalwarningnetworks.com.
+- **Sign-in** uses Omni accounts: the same shared Omni (`<cpanel-user>_viteReact`) database and OmniOne's own sign-in library, so one login works on every Omni site. New accounts, email verification and password resets happen on omnione.globalwarningnetworks.com.
 - **Tables** (`website/_setup/omniverse_migration_001.sql`, safe to import twice): `omniverse_visits`, `omniverse_device_codes`, `omniverse_app_tokens`. Nothing existing is changed.
 - **Deploy**: `bash website/_setup/deploy.sh` (uses the `fastcomet` SSH host). `_private/config.php` lives only on the server (see `config.example.php`); the deploy never touches it.
 
@@ -122,5 +130,5 @@ server/   sim (the agents' world loop) · config · settings · providers (Omni 
 public/   layout (city geometry, shared with the server) · main (boot, gate, HUD, panels, economy UI, life, terminal camera, loop) · menu (splash, modes, settings) · city (layout, zones, alleys, lots, interiors) · economy (blocks, zones, booths) · work (computer blocks, CRT screens, terminal) · house · neural (stats map + wiki) · player · agents (NPCs + goals) · avatar · labels
 docs/     ECONOMY.md (game design)
 data/     avatars.json · houses.json · journal.jsonl · journal-archive.jsonl · relations.json · budget.json · economy.json · paused.flag (git-ignored)
-omniverse.config.json   which folders become buildings
+omniverse.config.json   your picked projects and settings (local, not in git)
 ```

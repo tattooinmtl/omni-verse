@@ -6,6 +6,13 @@ export const SECRET_FILE =
 
 export const SECRET_DIR = new Set([".git", ".ssh", ".gnupg", "sessions"]);
 
+// Notes people keep their keys in: "Keys extra.txt", "api_keys.md",
+// "passwords.csv". Text-like files (or no extension) whose name has one of
+// these words are sealed too. Code files are not: keyboard.js, tokenizer.py.
+const SECRET_WORDS = /(^|[^a-z])(api[-_ ]?)?(keys?|passwords?|passwd|secrets?|credentials?|creds|tokens?)([^a-z]|$)/i;
+const TEXT_EXT = /^(|\.(txt|md|json|csv|ya?ml|ini|conf|cfg|toml|xml|log|rtf|docx?|xlsx?|pdf|bak|old|env))$/i;
+const isSecretNote = (name) => SECRET_WORDS.test(name.replace(/\.[^.]*$/, "")) && TEXT_EXT.test(name.match(/\.[^.]*$/)?.[0] || "");
+
 export function isSecretPath(rel) {
   const parts = String(rel).split(/[\\/]+/).filter(Boolean);
   // Windows paths are case-insensitive: .SSH and .Git are the same folders.
@@ -13,8 +20,10 @@ export function isSecretPath(rel) {
   // ~/.kube/config and ~/.docker/config.json hold cluster and registry credentials.
   const dir = (parts.at(-2) || "").toLowerCase(), file = (parts.at(-1) || "").toLowerCase();
   if ((dir === ".kube" && file === "config") || (dir === ".docker" && file === "config.json")) return true;
-  return SECRET_FILE.test(parts.at(-1) || "");
+  return SECRET_FILE.test(parts.at(-1) || "") || isSecretNote(parts.at(-1) || "");
 }
+// For directory listings, where only the file name is known.
+export const isSecretFile = (name) => SECRET_FILE.test(name) || isSecretNote(name);
 
 // Text people type: known keys plus anything shaped like a key, token or password.
 const SECRET_SHAPES = [

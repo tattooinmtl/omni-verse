@@ -8,12 +8,12 @@ import path from "node:path";
 import { APP_ROOT, localEnv } from "./config.mjs";
 import { checkProviders, knownSecrets, liveModels, publicRegistry, saveLocalKey } from "./providers.mjs";
 import { deleteAvatar, forgeAvatar, listAvatars, personaPrompt } from "./avatars.mjs";
-import { buildingRoot, getWorld } from "./world.mjs";
+import { MAX_PROJECTS, buildingRoot, findProjects, getWorld, inspectFolder } from "./world.mjs";
 import { budgetLeft, callAgent, chatReply, controlledId, craftItem, graph, house, isPaused, lifeContext, placeItem, record, setPaused, state as lifeState } from "./life.mjs";
 import * as work from "./work.mjs";
 import * as sim from "./sim.mjs";
 import { isSecretPath, redact, scrubSecrets } from "./security.mjs";
-import { getSettings, lifeConfig, saveSettings } from "./settings.mjs";
+import { getSettings, lifeConfig, saveProjects, saveSettings } from "./settings.mjs";
 import * as eco from "./economy.mjs";
 import * as cloud from "./cloud.mjs";
 
@@ -158,6 +158,29 @@ async function api(req, res, url) {
       return send(res, 200, { results: await checkProviders() });
     case "GET /api/models":
       return send(res, 200, await liveModels(String(url.searchParams.get("provider") || "")));
+    // Settings → Projects: every project on this PC, which ones are in the city.
+    case "GET /api/projects": {
+      const [found, world] = await Promise.all([findProjects(), getWorld()]);
+      const inCity = new Set(world.buildings.map((b) => String(b.root).toLowerCase()));
+      return send(res, 200, {
+        chosen: world.chosen, max: MAX_PROJECTS,
+        projects: found.map((p) => ({ ...p, selected: inCity.has(p.root.toLowerCase()) })),
+        // Picked folders that discovery doesn't reach (added by path) still show up.
+        extra: world.buildings.filter((b) => !found.some((p) => p.root.toLowerCase() === String(b.root).toLowerCase()))
+          .map((b) => ({ root: b.root, name: b.name, district: b.district, kind: "folder", last: b.last, selected: true })),
+      });
+    }
+    case "POST /api/projects/folder":
+      return send(res, 200, await inspectFolder((await readBody(req)).path));
+    case "POST /api/projects": {
+      const { projects, scanDirs } = await readBody(req);
+      if (!Array.isArray(projects) || projects.length > MAX_PROJECTS || projects.some((p) => typeof p !== "string" || p.length > 400)) {
+        return send(res, 400, { error: `Pick between 1 and ${MAX_PROJECTS} projects.` });
+      }
+      saveProjects(projects, Array.isArray(scanDirs) ? scanDirs.filter((d) => typeof d === "string" && d.length <= 400) : undefined);
+      const w = await getWorld(true);
+      return send(res, 200, { buildings: w.buildings.length, districts: new Set(w.buildings.map((b) => b.district)).size, chosen: w.chosen });
+    }
     case "GET /api/world":
       return send(res, 200, await getWorld(url.searchParams.get("refresh") === "1"));
     case "GET /api/file":

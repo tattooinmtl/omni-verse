@@ -3,6 +3,7 @@
 // holds which providers take part in the simulation, their preferred model,
 // and the life / economy tuning. Values are clamped to safe ranges on save.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { APP_ROOT, loadAppConfig, readJsonLoose } from "./config.mjs";
 
@@ -79,9 +80,28 @@ export const providerEnabled = (name) => providerPrefs()[name]?.enabled !== fals
 export function getSettings() {
   return {
     life: lifeConfig(), economy: economyConfig(), work: workConfig(), providers: providerPrefs(),
+    world: { scanDirs: Array.isArray(loadAppConfig().world?.scanDirs) ? loadAppConfig().world.scanDirs : [] },
     defaults: { life: defaults(LIFE), economy: defaults(ECONOMY), work: defaults(WORK) },
     limits: { life: LIFE, economy: ECONOMY, work: WORK },
   };
+}
+
+// The picked projects (Settings → Projects), stored as ~/… where possible so
+// the config reads the same on any machine. `null` goes back to "not picked".
+export function saveProjects(projects, scanDirs) {
+  let cfg = {};
+  try { cfg = readJsonLoose(FILE); } catch { /* new file */ }
+  const home = os.homedir();
+  const tidy = (p) => {
+    const abs = path.resolve(String(p));
+    return abs.toLowerCase().startsWith(home.toLowerCase() + path.sep) ? "~/" + path.relative(home, abs).split(path.sep).join("/") : abs;
+  };
+  cfg.world = { ...(cfg.world || {}) };
+  if (projects === null) delete cfg.world.projects;
+  else cfg.world.projects = [...new Set(projects.map(tidy))];
+  if (Array.isArray(scanDirs)) cfg.world.scanDirs = [...new Set(scanDirs.map(tidy))].slice(0, 50);
+  fs.writeFileSync(FILE, JSON.stringify(cfg, null, 2) + "\n");
+  return cfg.world;
 }
 
 export function saveSettings(body = {}) {

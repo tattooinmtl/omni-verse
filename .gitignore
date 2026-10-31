@@ -5,3 +5,4 @@ node_modules/
 *.tmp
 website/_private/config.php
 website/_private/logs/
+omniverse.config.json

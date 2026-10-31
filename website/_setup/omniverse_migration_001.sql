@@ -1,5 +1,5 @@
 -- Omniverse website: visits and connecting the Omniverse app to an account.
--- Database: globalw4_viteReact (shared with OmniOne and OmniBots).
+-- Database: <cpanel-user>_viteReact (shared with OmniOne and OmniBots).
 -- Only adds Omniverse's own tables; nothing existing is changed.
 -- Safe to import twice.
 

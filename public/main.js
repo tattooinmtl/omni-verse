@@ -241,7 +241,22 @@ async function boot() {
   ], { quick });
   $("spInfo").textContent = "";
   initGate(reg);
+  // A new install: nothing picked yet, so open the project picker first.
+  if (state.world && state.world.chosen === false && !sessionStorage.getItem("omniverse.pickerShown")) {
+    sessionStorage.setItem("omniverse.pickerShown", "1");
+    openSettingsScreen({ tab: "projects", firstRun: true });
+    return;
+  }
   showMenu();
+}
+
+function openSettingsScreen(opts = {}) {
+  showBackdrop(true, true);
+  openSettings(api, { ...opts, onClose: async () => {
+    try { [state.settings, state.world] = await Promise.all([api("/api/settings"), api("/api/world")]); } catch { /* keep what we had */ }
+    renderProviders();
+    showMenu();
+  } });
 }
 
 function showMenu() {
@@ -283,10 +298,10 @@ function showMenu() {
     },
     {
       id: "settings", title: "SETTINGS", color: "#39ff88",
-      sub: "providers from Omni · simulation · economy",
-      info: "Providers come from ~/.omni and are never copied. Choose which take part and their model, tune the simulation and the economy, and set display options.",
-      stats: [["Providers", `${state.providers.length} from Omni`], ["Economy", state.settings?.economy.enabled ? "on" : "off"]],
-      run: () => showBackdrop(true, true) || openSettings(api, { onClose: async () => { try { state.settings = await api("/api/settings"); } catch {} renderProviders(); showMenu(); } }),
+      sub: "projects · account · providers · simulation",
+      info: "Pick which projects become buildings, sign in with your Omni account, add API keys for any provider, tune the simulation and the economy, and set display options.",
+      stats: [["Projects", w ? `${w.buildings.length} in the city${w.chosen === false ? " (not picked yet)" : ""}` : "–"], ["Providers", `${state.providers.filter((p) => p.hasKey).length} ready of ${state.providers.length}`]],
+      run: () => openSettingsScreen(),
     },
   ], `${state.avatars.length} agents · ${projects} · ${keyed} keyed providers`);
 }

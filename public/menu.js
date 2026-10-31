@@ -157,9 +157,20 @@ const ECO_FIELDS = {
   minBuildScrap: ["Scrap needed to build", "below this an agent must go gathering"],
   craftEveryMin: ["Minutes between crafts", "per agent; each craft is one LLM call"],
 };
-const TABS = [["account", "ACCOUNT"], ["providers", "PROVIDERS"], ["life", "SIMULATION"], ["economy", "ECONOMY"], ["display", "DISPLAY"], ["controls", "CONTROLS"]];
+const TABS = [["projects", "PROJECTS"], ["account", "ACCOUNT"], ["providers", "PROVIDERS"], ["life", "SIMULATION"], ["economy", "ECONOMY"], ["display", "DISPLAY"], ["controls", "CONTROLS"]];
 
-export async function openSettings(api, { onClose }) {
+// "3 days ago", for when a project last changed.
+function ago(ms) {
+  if (!ms) return "";
+  const s = (Date.now() - ms) / 1000;
+  for (const [n, u] of [[31536000, "year"], [2592000, "month"], [604800, "week"], [86400, "day"], [3600, "hour"], [60, "minute"]]) {
+    if (s >= n) { const k = Math.floor(s / n); return `${k} ${u}${k > 1 ? "s" : ""} ago`; }
+  }
+  return "just now";
+}
+
+// tab: which tab opens first; firstRun: the welcome for a new install.
+export async function openSettings(api, { onClose, tab: firstTab = "providers", firstRun = false }) {
   $("settings").hidden = false;
   $("stPane").replaceChildren(el("p", { className: "lead", textContent: "Loading…" }));
   let s, reg;
@@ -171,7 +182,7 @@ export async function openSettings(api, { onClose }) {
     return;
   }
   const draft = { life: { ...s.life }, economy: { ...s.economy }, providers: JSON.parse(JSON.stringify(s.providers || {})), display: displaySettings() };
-  let tab = "providers", dirty = false;
+  let tab = firstTab, dirty = false;
   const mark = () => { dirty = true; $("stSaved").textContent = "● unsaved changes"; $("stSaved").style.color = "var(--amber)"; };
 
   const tabs = TABS.map(([id, label]) => el("button", { textContent: label, onclick: () => { tab = id; render(); } }));
@@ -301,6 +312,102 @@ export async function openSettings(api, { onClose }) {
       el("div", { className: "pv-grid" }, ...cards)];
   }
 
+  // ── Projects: which projects stand in the city ─────────────────────────
+  // Each picked project is one skyscraper: a floor per top-level folder, a
+  // room per file, computers in the lobby where agents work on it.
+  const proj = { list: null, picked: new Set(), scanDirs: [], filter: "", note: "", saving: false };
+  async function loadProjects() {
+    try {
+      const r = await api("/api/projects");
+      proj.max = r.max;
+      proj.chosen = r.chosen;
+      proj.list = [...r.projects, ...r.extra];
+      proj.picked = new Set(proj.list.filter((p) => p.selected).map((p) => p.root));
+      proj.scanDirs = [...(s.world?.scanDirs || [])];
+    } catch (e) { proj.list = []; proj.note = `✕ ${e.message}`; }
+    if (tab === "projects") render();
+  }
+  async function addFolder(input) {
+    proj.note = "Looking in that folder…";
+    render();
+    try {
+      const r = await api("/api/projects/folder", { path: input.value });
+      for (const p of r.projects) {
+        if (!proj.list.some((x) => x.root.toLowerCase() === p.root.toLowerCase())) proj.list.unshift(p);
+        proj.picked.add(p.root);
+      }
+      // A folder of projects is remembered, so the picker keeps showing what's in it.
+      if (r.projects.length > 1 || r.projects[0]?.root !== r.folder) proj.scanDirs.push(r.folder);
+      proj.note = `✓ added ${r.projects.length} project${r.projects.length > 1 ? "s" : ""}`;
+    } catch (e) { proj.note = `✕ ${e.message}`; }
+    render();
+  }
+  async function buildCity() {
+    proj.saving = true;
+    proj.note = `Building the city from ${proj.picked.size} projects… (big projects take a few seconds each)`;
+    render();
+    try {
+      const r = await api("/api/projects", { projects: [...proj.picked], scanDirs: proj.scanDirs });
+      proj.chosen = true;
+      proj.note = `✓ City rebuilt: ${r.buildings} buildings in ${r.districts} districts.`;
+    } catch (e) { proj.note = `✕ ${e.message}`; }
+    proj.saving = false;
+    render();
+  }
+  function projectsPane() {
+    const head = [el("h3", { textContent: firstRun && !proj.chosen ? "Welcome: build your city" : "Projects" }),
+      el("p", { className: "lead", textContent: (firstRun && !proj.chosen ? "Pick the projects that become your city. " : "Pick which projects stand in your city. ") +
+        "Each one becomes a skyscraper: a floor for every top-level folder, a room with a glowing terminal for each file, and computers in the lobby where agents clock in to work on it. Secret files (.env, keys, passwords) never become rooms." })];
+    if (!proj.list) { loadProjects(); return [...head, el("p", { className: "lead", textContent: "Looking for projects on this computer…" })]; }
+    const max = proj.max || 300;
+    const set = (roots, on) => { for (const r of roots) on ? proj.picked.add(r) : proj.picked.delete(r); render(); };
+    const search = el("input", { type: "search", placeholder: `Search ${proj.list.length} projects…`, value: proj.filter, oninput: () => { proj.filter = search.value; renderList(); } });
+    const folder = el("input", { type: "text", placeholder: "Add a folder: C:\\work\\my-app or ~/projects", spellcheck: false });
+    folder.onkeydown = (e) => { if (e.key === "Enter" && folder.value.trim()) addFolder(folder); };
+    const count = el("span", { className: "pj-count" });
+    const listBox = el("div", { className: "pj-list" });
+    const go = el("button", { className: "btn primary", onclick: buildCity });
+    function renderList() {
+      const q2 = proj.filter.toLowerCase();
+      const rows = proj.list.filter((p) => !q2 || p.name.toLowerCase().includes(q2) || p.root.toLowerCase().includes(q2) || p.district.toLowerCase().includes(q2));
+      const groups = new Map();
+      for (const p of rows) { if (!groups.has(p.district)) groups.set(p.district, []); groups.get(p.district).push(p); }
+      listBox.replaceChildren(...(rows.length ? [...groups].map(([d, list]) => el("div", { className: "pj-group" },
+        el("div", { className: "pj-ghead" }, el("b", { textContent: d }), el("span", { className: "muted", textContent: `${list.filter((p) => proj.picked.has(p.root)).length}/${list.length}` }),
+          el("button", { className: "btn small", textContent: "All", onclick: () => set(list.map((p) => p.root), true) }),
+          el("button", { className: "btn small", textContent: "None", onclick: () => set(list.map((p) => p.root), false) })),
+        ...list.map((p) => {
+          const cb = el("input", { type: "checkbox", checked: proj.picked.has(p.root) });
+          cb.onchange = () => { cb.checked ? proj.picked.add(p.root) : proj.picked.delete(p.root); update(); };
+          return el("label", { className: "pj-row" }, cb,
+            el("span", { className: "pj-name", textContent: p.name }),
+            el("span", { className: "badge", textContent: p.kind }),
+            el("span", { className: "muted pj-when", textContent: ago(p.last) }),
+            el("span", { className: "pj-path", textContent: p.root, title: p.root }));
+        })))
+        : [el("p", { className: "lead", textContent: "No project matches that search." })]));
+      update();
+    }
+    function update() {
+      const n = proj.picked.size, over = n > max;
+      count.textContent = `${n} picked${over ? ` · the limit is ${max}` : ""}`;
+      count.style.color = over ? "#ff8a9a" : "";
+      go.disabled = proj.saving || !n || over;
+      go.textContent = proj.saving ? "Building…" : `Build the city with ${n} project${n === 1 ? "" : "s"}`;
+    }
+    const recent = [...proj.list].sort((a, b) => b.last - a.last);
+    renderList();
+    return [...head,
+      el("div", { className: "pj-bar" }, search,
+        el("button", { className: "btn small", textContent: "Most recent 20", onclick: () => { proj.picked = new Set(recent.slice(0, 20).map((p) => p.root)); render(); } }),
+        el("button", { className: "btn small", textContent: `All ${Math.min(proj.list.length, max)}`, onclick: () => { proj.picked = new Set(recent.slice(0, max).map((p) => p.root)); render(); } }),
+        el("button", { className: "btn small", textContent: "None", onclick: () => { proj.picked.clear(); render(); } }),
+        count),
+      el("div", { className: "pj-bar" }, folder, el("button", { className: "btn small", textContent: "Add folder", onclick: () => folder.value.trim() && addFolder(folder) })),
+      listBox,
+      el("div", { className: "pj-foot" }, go, proj.note && el("span", { className: "pj-note", textContent: proj.note, style: proj.note.startsWith("✕") ? "color:#ff8a9a" : proj.note.startsWith("✓") ? "color:var(--green)" : "" }))];
+  }
+
   // ── Omni account: the device-code sign-in, as in OmniOne ────────────────
   let account = null, accountTimer = null;
   async function loadAccount(route = "/api/cloud", body) {
@@ -365,8 +472,9 @@ export async function openSettings(api, { onClose }) {
 
   function render() {
     tabs.forEach((b, i) => b.classList.toggle("on", TABS[i][0] === tab));
-    $("stReset").disabled = tab === "providers" || tab === "controls" || tab === "account";
-    const pane = tab === "account" ? accountPane()
+    $("stReset").disabled = tab === "providers" || tab === "controls" || tab === "account" || tab === "projects";
+    const pane = tab === "projects" ? projectsPane()
+      : tab === "account" ? accountPane()
       : tab === "providers" ? providersPane()
       : tab === "life" ? [el("h3", { textContent: "Simulation" }), el("p", { className: "lead", textContent: "How the agents live. Changes apply to the running server as soon as you save." }), ...section("life", LIFE_FIELDS)]
       : tab === "economy" ? [el("h3", { textContent: "Economy" }), el("p", { className: "lead", textContent: "Resources, the spawn timer, crafting and trade (docs/ECONOMY.md)." }), ...section("economy", ECO_FIELDS)]

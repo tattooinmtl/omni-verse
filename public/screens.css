@@ -203,3 +203,20 @@
 .acct-card b { font: 700 16px Orbitron, sans-serif; letter-spacing: 0.05em; }
 .acct-card .muted { overflow-wrap: anywhere; }
 .acct-code { margin: 10px 0 14px; padding: 14px; text-align: center; font: 44px VT323, monospace; letter-spacing: 0.25em; color: var(--cyan); border: 1px solid var(--line); border-radius: 6px; background: rgba(0, 0, 0, 0.45); text-shadow: 0 0 14px rgba(34, 230, 255, 0.7); }
+
+/* Settings → Projects */
+.pj-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 10px; }
+.pj-bar input { flex: 1 1 220px; min-width: 0; }
+.pj-count { margin-left: auto; font: 600 13px Orbitron, sans-serif; letter-spacing: 0.06em; color: var(--cyan); }
+.pj-list { display: grid; gap: 12px; max-height: 52vh; overflow-y: auto; padding-right: 4px; margin-bottom: 12px; }
+.pj-group { border: 1px solid rgba(34, 230, 255, 0.18); border-radius: 6px; background: rgba(0, 0, 0, 0.25); }
+.pj-ghead { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid rgba(34, 230, 255, 0.12); position: sticky; top: 0; background: rgba(2, 12, 20, 0.95); }
+.pj-ghead b { font: 700 13px Orbitron, sans-serif; letter-spacing: 0.06em; color: var(--amber); margin-right: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pj-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 4px 10px; align-items: center; padding: 6px 10px; cursor: pointer; }
+.pj-row:hover { background: rgba(34, 230, 255, 0.06); }
+.pj-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pj-when { font-size: 13px; white-space: nowrap; }
+.pj-path { grid-column: 2 / -1; font: 12px "Cascadia Code", Consolas, monospace; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pj-foot { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.pj-note { font-size: 14px; }
+@media (max-width: 560px) { .pj-row { grid-template-columns: auto minmax(0, 1fr) auto; } .pj-when { display: none; } }

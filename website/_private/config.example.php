@@ -15,12 +15,12 @@ return [
     // OmniOne's site, for creating an account, verifying email and resetting a password.
     'omnione_url' => 'https://omnione.globalwarningnetworks.com',
     // OmniOne's PHP library on this server (core, security, auth, connect).
-    'omnione_lib' => '/home/globalw4/omnione.globalwarningnetworks.com/_private/lib',
+    'omnione_lib' => '/home/<cpanel-user>/omnione.globalwarningnetworks.com/_private/lib',
 
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
-        'name' => 'globalw4_viteReact',
+        'name' => '<cpanel-user>_viteReact',
         'user' => 'CHANGE_ME',
         'pass' => 'CHANGE_ME',
     ],
