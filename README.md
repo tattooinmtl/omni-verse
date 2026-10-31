@@ -64,6 +64,10 @@ npm start
 
 Then open http://localhost:4777. You need Node 20 or newer; there are no npm dependencies, and three.js loads from jsDelivr.
 
+## Website
+
+`website/` is the public site: a scroll-driven flight through a neon city, the real residents' self-designed avatars (`website/js/residents.js`, exported from `data/avatars.json`), Agent Row and an illustrated neural map. It is plain static files; preview it with `npm run site` (http://localhost:4800). `serve.mjs` is only the local preview server and isn't needed on a host.
+
 ## Controls
 
 | Key | Action |

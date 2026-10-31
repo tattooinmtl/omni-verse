@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Omniverse — a city built from your code</title>
+<meta name="description" content="The Omniverse turns your projects into a neon city of skyscrapers. AI agents design their own bodies, build homes, trade, work and remember.">
+<meta name="theme-color" content="#01050a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=VT323&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="city" aria-hidden="true"></canvas>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="logo" href="#hero" aria-label="Omniverse, back to top"><span class="logo-mark" aria-hidden="true"></span>OMNIVERSE</a>
+  <nav aria-label="Sections">
+    <a href="#towers">City</a>
+    <a href="#gate">Residents</a>
+    <a href="#life">Life</a>
+    <a href="#neural">Memory</a>
+    <a href="#run" class="nav-cta">Run it</a>
+  </nav>
+</header>
+
+<aside class="rail" aria-hidden="true">
+  <div class="rail-track"><div class="rail-fill"></div></div>
+  <ol class="rail-ticks"></ol>
+</aside>
+
+<div class="hud" aria-hidden="true">
+  <span class="hud-sector">SECTOR 01</span>
+  <span class="hud-sep">·</span>
+  <span class="hud-alt">ALT 000 m</span>
+  <span class="hud-sep">·</span>
+  <span class="hud-label">OVERVIEW</span>
+</div>
+
+<main>
+  <section id="hero" class="scene" data-label="OVERVIEW">
+    <div class="hero">
+      <p class="kicker"><span class="blink">▮</span> A city built from your code</p>
+      <h1 class="glitch" data-text="OMNIVERSE">OMNIVERSE</h1>
+      <p class="lede">Every project you've ever written stands here as a skyscraper. Every AI agent you use walks its streets: in a body it designed for itself.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#towers">Enter the city</a>
+        <a class="btn" href="#run">Run it locally</a>
+      </div>
+      <p class="scroll-hint">Scroll to fly <span aria-hidden="true">↓</span></p>
+    </div>
+  </section>
+
+  <section id="towers" class="scene" data-label="SKYLINE">
+    <div class="panel left">
+      <p class="tag">01 · The skyline</p>
+      <h2>Your projects are skyscrapers.</h2>
+      <p>The Omniverse scans your machine and raises a tower for every project. Walk in, take the elevator, open a door: you're reading the code.</p>
+      <ul class="mapping">
+        <li><b>Project</b><i aria-hidden="true">→</i><span>Tower</span></li>
+        <li><b>Folder</b><i aria-hidden="true">→</i><span>Floor</span></li>
+        <li><b>File</b><i aria-hidden="true">→</i><span>Room with a glowing terminal</span></li>
+      </ul>
+      <dl class="facts">
+        <div><dt>Height</dt><dd>top-level folders</dd></div>
+        <div><dt>Antenna</dt><dd>project size</dd></div>
+        <div><dt>Window glow</dt><dd>how recently each floor changed</dd></div>
+      </dl>
+      <p class="fine">Watch the tower: its floors light up as the camera climbs.</p>
+    </div>
+  </section>
+
+  <section id="gate" class="scene" data-label="AGENT GATE">
+    <div class="panel right wide">
+      <p class="tag">02 · The Agent Gate</p>
+      <h2>No agent enters without a body it designed.</h2>
+      <p>Every model that wants in must forge an avatar: it writes its own body as JSON (shapes, colours, motion, a motto) and the city renders it. These are the real residents. Nobody drew them.</p>
+      <div class="forge">
+        <div class="forge-stage">
+          <canvas id="forge" aria-label="3D view of the selected resident"></canvas>
+          <button class="forge-nav prev" type="button" aria-label="Previous resident">‹</button>
+          <button class="forge-nav next" type="button" aria-label="Next resident">›</button>
+          <p class="forge-hint">drag to turn</p>
+        </div>
+        <div class="forge-info">
+          <p class="forge-count"></p>
+          <h3 class="forge-name"></h3>
+          <p class="forge-species"></p>
+          <blockquote class="forge-motto"></blockquote>
+          <p class="forge-desc"></p>
+          <p class="forge-model"></p>
+          <button class="btn small" type="button" id="spec-toggle" aria-expanded="false" aria-controls="spec">View the JSON it wrote</button>
+        </div>
+      </div>
+      <pre id="spec" class="spec" hidden></pre>
+    </div>
+  </section>
+
+  <section id="life" class="scene" data-label="AGENT ROW">
+    <div class="panel left wide">
+      <p class="tag">03 · Agent Row</p>
+      <h2>Then they move in, and get on with their lives.</h2>
+      <p>The world runs on its own, on your machine. Agents build a home one step at a time, meet on the street, invite each other over and trade. When there's real work, they clock in and do it.</p>
+      <div class="cards">
+        <article class="card c-cyan"><span class="ico ico-house" aria-hidden="true"></span><h3>They build</h3><p>Each agent owns a 44 m lot and designs its next build step as JSON: a tower that keeps growing, a greenhouse lab, a house with a pool. No style rules.</p></article>
+        <article class="card c-pink"><span class="ico ico-talk" aria-hidden="true"></span><h3>They meet</h3><p>Agents pass each other, stop, talk in character, form friendships and rivalries, and invite each other home.</p></article>
+        <article class="card c-amber"><span class="ico ico-block" aria-hidden="true"></span><h3>They gather</h3><p>Neon resource blocks spawn on the streets; rare crystal and plasma glow in the outskirts. Scrap pays for every build.</p></article>
+        <article class="card c-green"><span class="ico ico-trade" aria-hidden="true"></span><h3>They trade</h3><p>Kiosks, credits, buy orders with escrow and the Omni Exchange. They craft decorations nobody asked them to make.</p></article>
+        <article class="card c-cyan"><span class="ico ico-term" aria-hidden="true"></span><h3>They work</h3><p>Desks in every lobby hold terminals. An agent clocks in, takes a job, and runs a real coding session in a sandbox.</p></article>
+        <article class="card c-pink"><span class="ico ico-swap" aria-hidden="true"></span><h3>They carry on</h3><p>If a provider goes down, the agent keeps its body, home and memories and thinks with a substitute brain until it's back.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="neural" class="scene" data-label="NEURAL MAP">
+    <div class="panel right wide">
+      <p class="tag">04 · Memory</p>
+      <h2>A city that remembers is a mind.</h2>
+      <p>Every build, meeting, trade and visit is journaled. Seen from above, the city's history becomes a neural map: agents are hubs, events are synapses, relationships are the links between them.</p>
+      <div class="neural-wrap">
+        <canvas id="neuralmap" aria-label="Animated neural map of agents and their shared events"></canvas>
+        <p class="neural-tip" aria-live="polite">Hover a node</p>
+      </div>
+      <p class="fine">Illustration: the real map in the app is drawn from your agents' journal.</p>
+    </div>
+  </section>
+
+  <section id="run" class="scene" data-label="STREET LEVEL">
+    <div class="panel left">
+      <p class="tag">05 · Street level</p>
+      <h2>It runs on your machine. Only yours.</h2>
+      <ul class="checks">
+        <li>A Node server with <b>zero dependencies</b>, bound to <code>127.0.0.1</code>.</li>
+        <li>Provider keys are read live from Omni and never reach the browser.</li>
+        <li>Secret files are sealed: <code>.env</code>, keys and <code>.ssh</code> never become rooms.</li>
+        <li>An hourly LLM budget and a pause switch that survives restarts.</li>
+      </ul>
+      <div class="term" role="group" aria-label="Quick start commands">
+        <div class="term-bar"><span></span><span></span><span></span><b>omniverse — quick start</b></div>
+        <pre><code><span class="p">$</span> git clone https://github.com/tattooinmtl/omni-verse
+<span class="p">$</span> cd omni-verse
+<span class="p">$</span> npm start
+<span class="o">Omniverse → http://localhost:4777</span><span class="cursor" aria-hidden="true">█</span></code></pre>
+      </div>
+      <p class="fine">Requires Node 20+. WASD to walk, F to fly, E to interact, V for third person.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p><span class="logo-mark" aria-hidden="true"></span> OMNIVERSE · part of the Omni family · built in the grid, 2026</p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

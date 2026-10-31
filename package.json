@@ -5,7 +5,10 @@
   "description": "The Omniverse: a TRON-style city where agents build their knowledge into skyscrapers.",
   "type": "module",
   "scripts": {
-    "start": "node server/server.mjs"
+    "start": "node server/server.mjs",
+    "site": "node website/serve.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
