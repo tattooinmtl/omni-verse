@@ -87,6 +87,35 @@ const onScreen = new Map();
 const vis = new IntersectionObserver((entries) => { for (const e of entries) onScreen.set(e.target, e.isIntersecting); });
 vis.observe($("#forge")); vis.observe($("#neuralmap"));
 
+// ── visit counter and account link (need the site's PHP API; quietly absent on `npm run site`) ──
+const pad = (n, w) => String(n).padStart(w, "0");
+function rollTo(el, n, w) {
+  if (still) { el.textContent = pad(n, w); return; }
+  const t0 = performance.now(), from = Math.max(0, n - 120);
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / 1400);
+    el.textContent = pad(Math.round(from + (n - from) * (1 - Math.pow(1 - k, 3))), w);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+fetch("/api/visit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: location.pathname, ref: document.referrer }) })
+  .then((r) => (r.ok ? r.json() : null))
+  .then((s) => {
+    if (!s?.ok) return;
+    $("#counter").hidden = false;
+    rollTo($("#c-visits"), s.visits, 6);
+    rollTo($("#c-visitors"), s.visitors, 6);
+    rollTo($("#c-today"), s.today, 3);
+  })
+  .catch(() => {});
+fetch("/api/session").then((r) => (r.ok ? r.json() : null)).then((s) => {
+  if (!s?.user) return;
+  const a = $("#nav-account");
+  a.textContent = s.user.name;
+  a.href = "/account.php";
+}).catch(() => {});
+
 // ── loop ───────────────────────────────────────────────────────────────
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
 if (!still) window.addEventListener("pointermove", (e) => { pointer.tx = (e.clientX / innerWidth) * 2 - 1; pointer.ty = (e.clientY / innerHeight) * 2 - 1; });

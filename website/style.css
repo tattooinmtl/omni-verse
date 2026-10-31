@@ -37,6 +37,8 @@ code { font: 20px VT323, ui-monospace, monospace; color: var(--green); }
 .top nav a:hover, .top nav a.on { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
 .top nav a.nav-cta { color: #001018; background: var(--cyan); padding: 7px 14px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); box-shadow: 0 0 18px rgba(34, 230, 255, 0.6); }
 .top nav a.nav-cta:hover { color: #001018; background: #8ff4ff; text-shadow: none; }
+.top nav a.nav-acct { color: var(--text); border: 1px solid var(--line); padding: 6px 12px; }
+.top nav a.nav-acct:hover { border-color: var(--cyan); }
 
 /* ── progress rail and HUD ───────────────────────── */
 .rail { position: fixed; right: clamp(12px, 2vw, 26px); top: 50%; transform: translateY(-50%); z-index: 5; height: 46vh; width: 14px; }
@@ -174,6 +176,12 @@ main { position: relative; z-index: 2; }
 .foot { position: relative; z-index: 2; text-align: center; padding: 40px 16px calc(70px + env(safe-area-inset-bottom, 0px)); color: var(--muted); font: 18px VT323, monospace; letter-spacing: 0.15em; }
 .foot p { display: inline-flex; align-items: center; gap: 12px; margin: 0; }
 .foot .logo-mark { width: 10px; height: 10px; }
+.foot .privacy { display: block; margin-top: 10px; font: 500 14px Rajdhani, sans-serif; letter-spacing: 0.02em; color: var(--muted); opacity: 0.8; }
+.counter { display: flex; justify-content: center; gap: clamp(14px, 4vw, 40px); flex-wrap: wrap; margin-bottom: 26px; }
+.counter div { display: grid; justify-items: center; padding: 10px 18px; border: 1px solid var(--line); background: rgba(2, 10, 17, 0.7);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.counter b { font: 400 40px/1 VT323, monospace; letter-spacing: 0.12em; color: var(--cyan); text-shadow: 0 0 12px rgba(34, 230, 255, 0.7); font-variant-numeric: tabular-nums; }
+.counter span { font: 700 11px Orbitron, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); margin-top: 4px; }
 
 /* ── narrow screens ──────────────────────────────── */
 @media (max-width: 860px) {
@@ -183,7 +191,8 @@ main { position: relative; z-index: 2; }
 }
 @media (max-width: 640px) {
   body { font-size: 17px; }
-  .top nav a:not(.nav-cta) { display: none; }
+  .top nav a:not(.nav-cta):not(.nav-acct) { display: none; }
+  .top nav a.nav-acct { padding: 5px 9px; font-size: 11px; }
   .rail { display: none; }
   .hud { font-size: 16px; gap: 6px; }
   .scene { min-height: 130vh; padding-block: 14vh; }

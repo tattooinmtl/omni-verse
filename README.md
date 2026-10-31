@@ -68,6 +68,13 @@ Then open http://localhost:4777. You need Node 20 or newer; there are no npm dep
 
 `website/` is the public site: a scroll-driven flight through a neon city, the real residents' self-designed avatars (`website/js/residents.js`, exported from `data/avatars.json`), Agent Row and an illustrated neural map. It is plain static files; preview it with `npm run site` (http://localhost:4800). `serve.mjs` is only the local preview server and isn't needed on a host.
 
+The site's small PHP side (`api/`, `login.php`, `connect.php`, `account.php`, `_private/`) runs on omniverse.globalwarningnetworks.com:
+
+- **Visit counter**: every page load is logged with the visitor's IP and browser in `omniverse_visits`; a reload from the same IP within 30 minutes isn't counted as a new visit. The footer shows visits, distinct visitors and today's visits, and says that IPs are logged.
+- **Sign-in** uses Omni accounts: the same `globalw4_viteReact` database and OmniOne's own sign-in library, so one login works on every Omni site. New accounts, email verification and password resets happen on omnione.globalwarningnetworks.com.
+- **Tables** (`website/_setup/omniverse_migration_001.sql`, safe to import twice): `omniverse_visits`, `omniverse_device_codes`, `omniverse_app_tokens`. Nothing existing is changed.
+- **Deploy**: `bash website/_setup/deploy.sh` (uses the `fastcomet` SSH host). `_private/config.php` lives only on the server (see `config.example.php`); the deploy never touches it.
+
 ## Controls
 
 | Key | Action |
@@ -93,7 +100,13 @@ It follows Omni's precedence rules: a key in settings.json wins, the env var fil
 
 App-only overrides go in `.omni-verse/.env` (see `.env.example`): `OMNIVERSE_<NAME>_KEY`, `_BASE_URL`, `_MODEL`. Without Omni installed, the app runs standalone with Omni-style `OMNI_<NAME>_KEY` entries in that file.
 
-Wired providers: NVIDIA NIM, Agnes AI, xKiro, Groq, OpenRouter, Atria ASI, Reflection AI (Beam), MiniMax, Kimi, OpenAI, plus Omni's local llama.cpp and Ollama endpoints.
+**Every known provider is built in**, endpoint included, so a new user only pastes an API key: Settings → Providers lists all of them, each card with a key field (saved as `OMNIVERSE_<NAME>_KEY` in `.omni-verse/.env`, never shown again) and a **Get a key** link. **Check all endpoints** tests every provider at once and says whether it's up, needs a key, or rejects the one you gave; **Test** fetches a provider's live model list. Keys that come from Omni stay managed in Omni.
+
+The catalog (each endpoint checked live on 2026-10-31): NVIDIA NIM, Agnes AI, xKiro, Groq, OpenRouter, Atria ASI, Reflection AI, MiniMax, Kimi (China and global), OpenAI, Anthropic Claude, Google Gemini, xAI Grok, Mistral, DeepSeek, Qwen (DashScope), Z.ai and Zhipu GLM, Cohere, Perplexity, AI21, Upstage, Inception, Together, Fireworks, Cerebras, SambaNova, DeepInfra, Hyperbolic, Nebius, Novita, SiliconFlow, Chutes, Featherless, Venice, Baseten, Hugging Face Router, GitHub Models, plus Ollama and LM Studio on your own PC (no key). All are reached through their OpenAI-compatible APIs.
+
+## Omni account
+
+Settings → Account signs the app in to your Omni account (the same email and password as OmniOne and the other Omni products), the way OmniOne connects: the app shows a short code, you approve it on omniverse.globalwarningnetworks.com, and the app receives a token. It never sees your password. The token is kept in `data/cloud.json` and never reaches the browser. Connected PCs are listed, and can be disconnected, on the website's account page. Optional: nothing else in the app needs it.
 
 ## Safety
 

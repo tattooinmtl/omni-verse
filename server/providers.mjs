@@ -15,18 +15,56 @@ import path from "node:path";
 import { APP_ROOT, HOME, parseEnvFile, readJsonLoose } from "./config.mjs";
 import { redact } from "./security.mjs";
 
-// Same URLs as Omni's src/core/config.mjs; `model` is this app's default pick.
+// The first ten use the same URLs as Omni's src/core/config.mjs. The rest is a
+// catalog of every major OpenAI-compatible provider, each endpoint checked
+// live (2026-10-31), so a new user only has to paste an API key. `model` is
+// a starting pick; the provider's own /models list replaces it once a key is
+// in. `keyUrl` is where to get a key; `noModels` marks providers without a
+// /models list; local servers need no key.
 export const BUILTIN_PROVIDERS = {
-  nvidia: { label: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", model: "nvidia/nemotron-3-ultra-550b-a55b" },
+  nvidia: { label: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", model: "nvidia/nemotron-3-ultra-550b-a55b", keyUrl: "https://build.nvidia.com/" },
   agnes: { label: "Agnes AI", baseUrl: "https://apihub.agnes-ai.com/v1", model: "agnes-2.5-flash" },
   xkiro: { label: "xKiro", baseUrl: "https://api.xkiro.com/v1", model: "mistralai/mistral-medium-3.5" },
-  groq: { label: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b" },
-  openrouter: { label: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1", model: "openrouter/auto" },
+  groq: { label: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b", keyUrl: "https://console.groq.com/keys" },
+  openrouter: { label: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1", model: "openrouter/auto", keyUrl: "https://openrouter.ai/keys" },
   atria: { label: "Atria ASI", baseUrl: "https://api.atria-asi.ai/v1", model: "Atria-Dawn" },
   reflection: { label: "Reflection AI", baseUrl: "https://api.reflection.ai/openai/v1", model: "Beam-1.0-501B-A23B" },
-  "minimax.io": { label: "MiniMax", baseUrl: "https://api.minimax.io/v1", model: "MiniMax-M3.1-Flash" },
-  kimi: { label: "Kimi (Moonshot)", baseUrl: "https://api.moonshot.cn/v1", model: "moonshot-v1-32k" },
-  openai: { label: "OpenAI", baseUrl: "https://api.openai.com/v1", model: "gpt-4.1-mini" },
+  "minimax.io": { label: "MiniMax", baseUrl: "https://api.minimax.io/v1", model: "MiniMax-M3.1-Flash", keyUrl: "https://www.minimax.io/platform" },
+  kimi: { label: "Kimi (Moonshot, China)", baseUrl: "https://api.moonshot.cn/v1", model: "moonshot-v1-32k", keyUrl: "https://platform.moonshot.cn/" },
+  openai: { label: "OpenAI", baseUrl: "https://api.openai.com/v1", model: "gpt-4.1-mini", keyUrl: "https://platform.openai.com/api-keys" },
+
+  anthropic: { label: "Anthropic Claude", baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-5-5", keyUrl: "https://console.anthropic.com/settings/keys" },
+  google: { label: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash", keyUrl: "https://aistudio.google.com/apikey" },
+  xai: { label: "xAI Grok", baseUrl: "https://api.x.ai/v1", model: "grok-3-mini", keyUrl: "https://console.x.ai/" },
+  mistral: { label: "Mistral AI", baseUrl: "https://api.mistral.ai/v1", model: "mistral-small-latest", keyUrl: "https://console.mistral.ai/api-keys" },
+  deepseek: { label: "DeepSeek", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat", keyUrl: "https://platform.deepseek.com/api_keys" },
+  moonshot: { label: "Kimi (Moonshot, global)", baseUrl: "https://api.moonshot.ai/v1", model: "kimi-k2-0905-preview", keyUrl: "https://platform.moonshot.ai/" },
+  qwen: { label: "Qwen (Alibaba DashScope)", baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1", model: "qwen-plus", keyUrl: "https://modelstudio.console.alibabacloud.com/" },
+  zai: { label: "Z.ai GLM (global)", baseUrl: "https://api.z.ai/api/paas/v4", model: "glm-4.5", keyUrl: "https://z.ai/manage-apikey/apikey-list" },
+  zhipu: { label: "Zhipu GLM (China)", baseUrl: "https://open.bigmodel.cn/api/paas/v4", model: "glm-4-flash", keyUrl: "https://open.bigmodel.cn/usercenter/apikeys" },
+  cohere: { label: "Cohere", baseUrl: "https://api.cohere.ai/compatibility/v1", model: "command-a-03-2025", keyUrl: "https://dashboard.cohere.com/api-keys" },
+  perplexity: { label: "Perplexity", baseUrl: "https://api.perplexity.ai", model: "sonar", noModels: true, keyUrl: "https://www.perplexity.ai/account/api/keys" },
+  ai21: { label: "AI21 Labs", baseUrl: "https://api.ai21.com/studio/v1", model: "jamba-large", keyUrl: "https://studio.ai21.com/account/api-key" },
+  upstage: { label: "Upstage Solar", baseUrl: "https://api.upstage.ai/v1", model: "solar-pro2", keyUrl: "https://console.upstage.ai/api-keys" },
+  inception: { label: "Inception Mercury", baseUrl: "https://api.inceptionlabs.ai/v1", model: "mercury", keyUrl: "https://platform.inceptionlabs.ai/" },
+  together: { label: "Together AI", baseUrl: "https://api.together.xyz/v1", model: "meta-llama/Llama-3.3-70B-Instruct-Turbo", keyUrl: "https://api.together.ai/settings/api-keys" },
+  fireworks: { label: "Fireworks AI", baseUrl: "https://api.fireworks.ai/inference/v1", model: "accounts/fireworks/models/llama-v3p3-70b-instruct", keyUrl: "https://fireworks.ai/account/api-keys" },
+  cerebras: { label: "Cerebras", baseUrl: "https://api.cerebras.ai/v1", model: "llama-3.3-70b", keyUrl: "https://cloud.cerebras.ai/" },
+  sambanova: { label: "SambaNova", baseUrl: "https://api.sambanova.ai/v1", model: "Meta-Llama-3.3-70B-Instruct", keyUrl: "https://cloud.sambanova.ai/apis" },
+  deepinfra: { label: "DeepInfra", baseUrl: "https://api.deepinfra.com/v1/openai", model: "meta-llama/Llama-3.3-70B-Instruct", keyUrl: "https://deepinfra.com/dash/api_keys" },
+  hyperbolic: { label: "Hyperbolic", baseUrl: "https://api.hyperbolic.xyz/v1", model: "meta-llama/Llama-3.3-70B-Instruct", keyUrl: "https://app.hyperbolic.xyz/settings" },
+  nebius: { label: "Nebius AI Studio", baseUrl: "https://api.studio.nebius.com/v1", model: "meta-llama/Llama-3.3-70B-Instruct", keyUrl: "https://studio.nebius.com/settings/api-keys" },
+  novita: { label: "Novita AI", baseUrl: "https://api.novita.ai/v3/openai", model: "meta-llama/llama-3.3-70b-instruct", keyUrl: "https://novita.ai/settings/key-management" },
+  siliconflow: { label: "SiliconFlow", baseUrl: "https://api.siliconflow.com/v1", model: "deepseek-ai/DeepSeek-V3", keyUrl: "https://cloud.siliconflow.com/account/ak" },
+  chutes: { label: "Chutes", baseUrl: "https://llm.chutes.ai/v1", model: "deepseek-ai/DeepSeek-V3-0324", keyUrl: "https://chutes.ai/app/api" },
+  featherless: { label: "Featherless", baseUrl: "https://api.featherless.ai/v1", model: "meta-llama/Meta-Llama-3.1-8B-Instruct", keyUrl: "https://featherless.ai/account/api-keys" },
+  venice: { label: "Venice AI", baseUrl: "https://api.venice.ai/api/v1", model: "llama-3.3-70b", keyUrl: "https://venice.ai/settings/api" },
+  baseten: { label: "Baseten", baseUrl: "https://inference.baseten.co/v1", model: "deepseek-ai/DeepSeek-V3-0324", keyUrl: "https://app.baseten.co/settings/api_keys" },
+  huggingface: { label: "Hugging Face Router", baseUrl: "https://router.huggingface.co/v1", model: "meta-llama/Llama-3.3-70B-Instruct", keyUrl: "https://huggingface.co/settings/tokens" },
+  github: { label: "GitHub Models", baseUrl: "https://models.github.ai/inference", model: "openai/gpt-4.1-mini", keyUrl: "https://github.com/settings/personal-access-tokens" },
+
+  ollama: { label: "Ollama (this PC)", baseUrl: "http://localhost:11434/v1", model: "llama3.2", apiKey: "not-needed", keyUrl: "https://ollama.com/download" },
+  lmstudio: { label: "LM Studio (this PC)", baseUrl: "http://localhost:1234/v1", model: "local-model", apiKey: "not-needed", keyUrl: "https://lmstudio.ai/" },
 };
 export const FEATURED = ["nvidia", "agnes", "xkiro", "groq", "openrouter", "atria", "reflection", "minimax.io"];
 
@@ -93,6 +131,8 @@ function resolveProvider(name, p, env) {
     accounts,
     activeAccount: p.activeAccount || null,
     builtinModel: p.model,
+    keyUrl: p.keyUrl || "",
+    noModels: Boolean(p.noModels),
   };
 }
 
@@ -131,7 +171,8 @@ const hasKey = (p) => Boolean(p.key) || Object.values(p.accounts || {}).some(Boo
 // Safe for the browser: no keys, no masks — only whether one exists and where from.
 export function publicRegistry() {
   const reg = loadRegistry();
-  const rank = (n) => (FEATURED.includes(n) ? FEATURED.indexOf(n) : 100);
+  // Your featured providers first, then any other with a key, then the catalog A–Z.
+  const rank = (p) => (FEATURED.includes(p.name) ? FEATURED.indexOf(p.name) : hasKey(p) && p.key !== "not-needed" ? 50 : 100);
   const list = Object.values(reg.providers)
     .map((p) => ({
       name: p.name,
@@ -144,8 +185,10 @@ export function publicRegistry() {
       models: p.models,
       defaultModel: p.defaultModel,
       featured: FEATURED.includes(p.name),
+      keyUrl: p.keyUrl,
+      rank: rank(p),
     }))
-    .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
+    .sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label));
   return {
     mode: reg.omni ? "shared" : "standalone",
     omniSettings: reg.omni?.settings || null,
@@ -159,6 +202,57 @@ export function knownSecrets() {
   return loadRegistry().secrets;
 }
 
+// Save (or, with "", remove) a provider's key as OMNIVERSE_<NAME>_KEY in this
+// app's own .env, the documented per-app override. Omni's files are never
+// touched. The key is never sent back to the browser.
+export function saveLocalKey(name, key) {
+  const p = loadRegistry().providers[name];
+  if (!p) throw Object.assign(new Error(`unknown provider "${name}"`), { status: 404 });
+  const value = String(key ?? "").trim();
+  if (value.length > 500 || /[\s"'`]/.test(value)) throw Object.assign(new Error("That doesn't look like an API key."), { status: 400 });
+  const file = path.join(APP_ROOT, ".env"), v = overrideVar(name, "KEY");
+  let lines = [];
+  try { lines = fs.readFileSync(file, "utf8").split(/\r?\n/); } catch { /* first key */ }
+  const at = lines.findIndex((l) => l.trim().startsWith(`${v}=`));
+  if (value) {
+    if (at >= 0) lines[at] = `${v}=${value}`;
+    else { while (lines.length && !lines.at(-1).trim()) lines.pop(); lines.push(`${v}=${value}`, ""); }
+  } else if (at >= 0) lines.splice(at, 1);
+  fs.writeFileSync(file + ".tmp", lines.join("\n"), { mode: 0o600 });
+  fs.renameSync(file + ".tmp", file);
+  liveCache.delete(name);
+  return { provider: name, hasKey: Boolean(value) };
+}
+
+// Is the endpoint up, and is the key good? Asks for /models (or, for
+// providers without one, sends an empty chat request) and reads the status:
+// 200 = ok, 401/403 = key missing or rejected, anything else = up but unhappy,
+// no answer = down. Every provider is checked at once.
+export async function checkProviders() {
+  const reg = loadRegistry();
+  const one = async (p) => {
+    const key = p.key || Object.values(p.accounts || {}).find(Boolean) || "";
+    const headers = key && key !== "not-needed" ? { authorization: `Bearer ${key}` } : {};
+    const base = p.baseUrl.replace(/\/+$/, "");
+    const t0 = Date.now();
+    try {
+      const res = p.noModels
+        ? await fetch(`${base}/chat/completions`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(10_000) })
+        : await fetch(`${base}/models`, { headers, signal: AbortSignal.timeout(10_000) });
+      let models = 0;
+      if (res.ok && !p.noModels) { try { models = ((await res.json()).data || []).length; } catch { /* not a list */ } }
+      const keyed = Boolean(key);
+      const auth = res.status === 401 || res.status === 403 ? (keyed && key !== "not-needed" ? "rejected" : "missing")
+        : res.ok || (p.noModels && res.status === 400) ? (keyed ? "ok" : "open")
+        : !keyed && [400, 404].includes(res.status) ? "missing" : "unknown"; // Gemini answers 404 without a key
+      return { name: p.name, up: true, status: res.status, ms: Date.now() - t0, auth, models };
+    } catch {
+      return { name: p.name, up: false, status: 0, ms: Date.now() - t0, auth: "unknown", models: 0 };
+    }
+  };
+  return Promise.all(Object.values(reg.providers).filter((p) => p.baseUrl).map(one));
+}
+
 // The provider's own /models list, so dropdowns never offer retired model ids.
 const NOT_CHAT = /embed|guard|safety|reward|parse|whisper|tts|speech|audio|image|video|vision-only|rerank|moderation|clip|ocr/i;
 const liveCache = new Map();
@@ -170,7 +264,7 @@ export async function liveModels(name) {
   const key = p.key || Object.values(p.accounts || {}).find(Boolean);
   const headers = key && key !== "not-needed" ? { authorization: `Bearer ${key}` } : {};
   let ids = [];
-  try {
+  if (!p.noModels) try {
     const res = await fetch(`${p.baseUrl.replace(/\/+$/, "")}/models`, { headers, signal: AbortSignal.timeout(15_000) });
     if (res.ok) ids = ((await res.json()).data || []).map((m) => m.id).filter((id) => id && !NOT_CHAT.test(id));
   } catch { /* offline or no /models: fall back to Omni's list */ }

@@ -1,0 +1,31 @@
+/* The sign-in, connect and account pages: style.css plus these. */
+body.page { min-height: 100vh; display: flex; flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(34, 230, 255, 0.16), transparent 60%),
+    linear-gradient(rgba(34, 230, 255, 0.05) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(34, 230, 255, 0.05) 1px, transparent 1px) 0 0 / 40px 40px,
+    var(--bg); }
+.page-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: calc(110px + env(safe-area-inset-top, 0px)) clamp(16px, 5vw, 40px) 40px; }
+.panel.narrow { width: 100%; max-width: 520px; }
+.page .foot { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+
+.form { display: grid; gap: 14px; margin-top: 18px; }
+.form label { display: grid; gap: 6px; font: 700 12px Orbitron, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.form input { font: 500 18px Rajdhani, sans-serif; color: var(--text); background: rgba(0, 0, 0, 0.5); border: 1px solid var(--line); padding: 10px 12px; outline: none; }
+.form input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(34, 230, 255, 0.35); }
+.form-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.form-links { font-size: 16px; color: var(--muted); }
+.flash { padding: 10px 14px; margin: 14px 0 0; border-left: 3px solid var(--cyan); background: rgba(34, 230, 255, 0.08); }
+.flash--error { border-color: #ff4d6d; background: rgba(255, 77, 109, 0.1); color: #ffc2cd; }
+.ok-line { font: 700 20px Orbitron, sans-serif; color: var(--green); text-shadow: 0 0 12px rgba(57, 255, 136, 0.5); }
+
+.code-box { margin: 18px 0; padding: 16px; text-align: center; font: 44px VT323, monospace; letter-spacing: 0.25em; color: var(--cyan);
+  border: 1px solid var(--line); background: rgba(0, 0, 0, 0.45); text-shadow: 0 0 14px rgba(34, 230, 255, 0.7); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 16px 0; }
+.kv dt { font: 700 11px Orbitron, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); padding-top: 4px; }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.sub-h { font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan); margin: 26px 0 10px; }
+.apps { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.apps li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid rgba(34, 230, 255, 0.2); }
+.apps li div { display: grid; min-width: 0; }
+.apps .fine { margin: 0 !important; }

@@ -1,0 +1,20 @@
+DirectoryIndex index.html index.php
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Some hosts drop the Authorization header before PHP sees it; hand it on,
+  # so the app's "Bearer omv_…" token reaches the API.
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+  # Private code, config and setup files are never served.
+  RewriteRule ^(_private|_setup)(/|$) - [F,L]
+  # /api/auth/device/start → api/index.php?r=auth/device/start
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^api/(.*)$ api/index.php?r=$1 [QSA,L]
+</IfModule>
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|md|log|bak|env|txt|mjs)$">
+  Require all denied
+</FilesMatch>

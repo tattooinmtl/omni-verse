@@ -6,7 +6,7 @@ import http from "node:http";
 import crypto from "node:crypto";
 import path from "node:path";
 import { APP_ROOT, localEnv } from "./config.mjs";
-import { knownSecrets, liveModels, publicRegistry } from "./providers.mjs";
+import { checkProviders, knownSecrets, liveModels, publicRegistry, saveLocalKey } from "./providers.mjs";
 import { deleteAvatar, forgeAvatar, listAvatars, personaPrompt } from "./avatars.mjs";
 import { buildingRoot, getWorld } from "./world.mjs";
 import { budgetLeft, callAgent, chatReply, controlledId, craftItem, graph, house, isPaused, lifeContext, placeItem, record, setPaused, state as lifeState } from "./life.mjs";
@@ -15,6 +15,7 @@ import * as sim from "./sim.mjs";
 import { isSecretPath, redact, scrubSecrets } from "./security.mjs";
 import { getSettings, lifeConfig, saveSettings } from "./settings.mjs";
 import * as eco from "./economy.mjs";
+import * as cloud from "./cloud.mjs";
 
 const PORT = Number(process.env.OMNIVERSE_PORT || localEnv().OMNIVERSE_PORT || 4777);
 const PUBLIC = path.join(APP_ROOT, "public");
@@ -138,6 +139,23 @@ async function api(req, res, url) {
     }
     case "GET /api/providers":
       return send(res, 200, publicRegistry());
+    // The Omni account link (see cloud.mjs). The token never leaves the server.
+    case "GET /api/cloud":
+      return send(res, 200, cloud.status());
+    case "POST /api/cloud/connect":
+      return send(res, 200, await cloud.connect());
+    case "POST /api/cloud/cancel":
+      return send(res, 200, cloud.cancel());
+    case "POST /api/cloud/refresh":
+      return send(res, 200, await cloud.refresh());
+    case "POST /api/cloud/logout":
+      return send(res, 200, await cloud.signOut());
+    case "POST /api/providers/key": {
+      const { provider, key } = await readBody(req);
+      return send(res, 200, saveLocalKey(String(provider || ""), key));
+    }
+    case "GET /api/providers/check":
+      return send(res, 200, { results: await checkProviders() });
     case "GET /api/models":
       return send(res, 200, await liveModels(String(url.searchParams.get("provider") || "")));
     case "GET /api/world":

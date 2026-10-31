@@ -157,7 +157,7 @@ const ECO_FIELDS = {
   minBuildScrap: ["Scrap needed to build", "below this an agent must go gathering"],
   craftEveryMin: ["Minutes between crafts", "per agent; each craft is one LLM call"],
 };
-const TABS = [["providers", "PROVIDERS"], ["life", "SIMULATION"], ["economy", "ECONOMY"], ["display", "DISPLAY"], ["controls", "CONTROLS"]];
+const TABS = [["account", "ACCOUNT"], ["providers", "PROVIDERS"], ["life", "SIMULATION"], ["economy", "ECONOMY"], ["display", "DISPLAY"], ["controls", "CONTROLS"]];
 
 export async function openSettings(api, { onClose }) {
   $("settings").hidden = false;
@@ -210,12 +210,42 @@ export async function openSettings(api, { onClose }) {
     });
   }
 
+  // Endpoint checks survive re-renders (a saved key re-renders the pane).
+  const checks = new Map();
+  async function checkAll(btn) {
+    btn.disabled = true;
+    btn.textContent = "Checking every endpoint…";
+    try {
+      for (const r of (await api("/api/providers/check")).results) checks.set(r.name, r);
+    } catch (e) { btn.textContent = `✕ ${e.message}`; return; }
+    finally { btn.disabled = false; }
+    render();
+  }
+  const checkLine = (r) => !r ? null
+    : !r.up ? ["✕ endpoint not answering", "#ff8a9a"]
+    : r.auth === "ok" ? [`✓ key works${r.models ? ` · ${r.models} models` : ""} · ${r.ms} ms`, "var(--green)"]
+    : r.auth === "open" ? [`✓ up, no key needed${r.models ? ` · ${r.models} models` : ""} · ${r.ms} ms`, "var(--green)"]
+    : r.auth === "rejected" ? [`✕ key rejected (${r.status}): replace it`, "#ff8a9a"]
+    : r.auth === "missing" ? [`● up · add a key to use it · ${r.ms} ms`, "var(--amber)"]
+    : [`● up, answered ${r.status} · ${r.ms} ms`, "var(--amber)"];
+
+  async function saveKey(p, input, note) {
+    note.textContent = "Saving…";
+    try {
+      await api("/api/providers/key", { provider: p.name, key: input.value });
+      reg = await api("/api/providers");
+      checks.delete(p.name);
+      render();
+    } catch (e) { note.textContent = `✕ ${e.message}`; note.style.color = "#ff8a9a"; }
+  }
+
   function providersPane() {
     const lead = el("p", { className: "lead" },
       reg.mode === "shared"
-        ? el("span", {}, "Providers are read live from Omni (", el("code", { textContent: reg.omniSettings }), "). Keys and URLs never leave Omni: edit them there. Here you choose which providers take part in the simulation and which model each one uses.")
-        : el("span", {}, "Omni was not found, so keys come from ", el("code", { textContent: reg.localEnv }), ". Choose which providers take part and their model."));
+        ? el("span", {}, "Providers are read live from Omni (", el("code", { textContent: reg.omniSettings }), "); keys set there stay there. Every other known provider is listed too: paste an API key on its card and it's saved to ", el("code", { textContent: reg.localEnv }), ", this app only. Choose which providers take part in the simulation and the model each one uses.")
+        : el("span", {}, "Every known provider is listed. Paste an API key on a card and it's saved to ", el("code", { textContent: reg.localEnv }), " (never shown again). Choose which providers take part and their model."));
     const errs = (reg.errors || []).map((e) => el("p", { className: "err-line", textContent: e }));
+    const checkBtn = el("button", { className: "btn small", textContent: checks.size ? "Check all endpoints again" : "Check all endpoints", onclick: () => checkAll(checkBtn) });
     const cards = reg.providers.map((p) => {
       const pref = (draft.providers[p.name] ||= {});
       const on = pref.enabled !== false;
@@ -236,7 +266,22 @@ export async function openSettings(api, { onClose }) {
           el("span", { className: "badge", textContent: p.local ? "local · keyless" : p.hasKey ? `key: ${p.source}` : "no key" }),
           ...p.accounts.map((a) => el("span", { className: `badge${a.active ? " on" : ""}`, textContent: `${a.name}${a.hasKey ? "" : " (empty)"}${a.active ? " · active" : ""}` }))),
         el("div", { className: "row" }, select, el("button", { className: "btn small", textContent: "Test", disabled: !p.hasKey, onclick: () => test() })),
+        keyRow(),
         live);
+      const c = checkLine(checks.get(p.name));
+      if (c) { live.textContent = c[0]; live.style.color = c[1]; }
+      // Keys from Omni are managed there; any other provider takes a key here.
+      function keyRow() {
+        if (p.local) return el("div", { className: "keyrow" }, el("span", { className: "muted", textContent: "Runs on this PC: start it, then Test." }), p.keyUrl && el("a", { href: p.keyUrl, target: "_blank", rel: "noopener", textContent: "Get it ↗" }));
+        if (p.hasKey && p.source !== "omni-verse .env") return el("div", { className: "keyrow" }, el("span", { className: "muted", textContent: `Key managed in Omni (${p.source}).` }));
+        const input = el("input", { type: "password", autocomplete: "off", spellcheck: false, placeholder: p.hasKey ? "key saved · paste to replace" : "paste API key" });
+        const note = el("span", { className: "muted" });
+        input.onkeydown = (e) => { if (e.key === "Enter") saveKey(p, input, note); };
+        return el("div", { className: "keyrow" }, input,
+          el("button", { className: "btn small", textContent: "Save key", onclick: () => saveKey(p, input, note) }),
+          p.hasKey && el("button", { className: "btn small", textContent: "Remove", onclick: () => { input.value = ""; saveKey(p, input, note); } }),
+          p.keyUrl && el("a", { href: p.keyUrl, target: "_blank", rel: "noopener", textContent: "Get a key ↗" }), note);
+      }
       sw.onchange = () => { pref.enabled = sw.checked; card.classList.toggle("off", !sw.checked); mark(); };
       async function test() {
         live.textContent = "Asking the provider for its models…";
@@ -250,7 +295,60 @@ export async function openSettings(api, { onClose }) {
       }
       return card;
     });
-    return [el("h3", { textContent: "Providers" }), lead, ...errs, el("div", { className: "pv-grid" }, ...cards)];
+    const n = reg.providers.length, keyed = reg.providers.filter((p) => p.hasKey).length;
+    return [el("h3", { textContent: "Providers" }), lead, ...errs,
+      el("div", { className: "pv-bar" }, el("span", { className: "muted", textContent: `${n} providers · ${keyed} ready` }), checkBtn),
+      el("div", { className: "pv-grid" }, ...cards)];
+  }
+
+  // ── Omni account: the device-code sign-in, as in OmniOne ────────────────
+  let account = null, accountTimer = null;
+  async function loadAccount(route = "/api/cloud", body) {
+    try { account = await api(route, body); } catch (e) { account = { ...(account || {}), error: e.message }; }
+    clearTimeout(accountTimer);
+    // While a code waits for approval, look again every 2 s.
+    if (account?.pending && tab === "account" && !$("settings").hidden) accountTimer = setTimeout(() => loadAccount(), 2000);
+    if (tab === "account") render();
+  }
+  function accountPane() {
+    const head = [el("h3", { textContent: "Omni account" }),
+      el("p", { className: "lead", textContent: "Sign in with the account you use for OmniOne and the other Omni products. Your password is only ever typed on the website; this app gets a token it keeps on this PC." })];
+    if (!account) { loadAccount(); return [...head, el("p", { className: "lead", textContent: "Checking…" })]; }
+    const site = el("a", { href: account.site, target: "_blank", rel: "noopener", textContent: (account.site || "").replace(/^https?:\/\//, "") });
+    const err = account.error ? el("p", { className: "err-line", textContent: account.error }) : null;
+    if (account.connected) {
+      const u = account.user || {};
+      return [...head, err, el("div", { className: "acct-card" },
+        u.avatar ? el("img", { src: u.avatar, alt: "", width: 56, height: 56 }) : el("span", { className: "acct-initial", textContent: (u.name || u.email || "?").slice(0, 1).toUpperCase() }),
+        el("div", {},
+          el("b", { textContent: u.name || "Signed in" }),
+          el("span", { className: "muted", textContent: `${u.email || ""}${u.tier ? ` · ${u.tier}` : ""}` }),
+          el("span", { className: "muted", textContent: `Connected ${account.connectedAt ? new Date(account.connectedAt).toLocaleString() : ""} · `, }, site))),
+        el("div", { className: "row" },
+          el("button", { className: "btn small", textContent: "Refresh profile", onclick: () => loadAccount("/api/cloud/refresh", {}) }),
+          el("button", { className: "btn small", textContent: "Sign out", onclick: () => loadAccount("/api/cloud/logout", {}) }))];
+    }
+    if (account.pending) {
+      const p = account.pending;
+      return [...head, err,
+        el("p", { className: "lead", textContent: "Approve this code on the website. It opened in your browser; if not, use the button." }),
+        el("div", { className: "acct-code", textContent: p.userCode }),
+        el("div", { className: "row" },
+          el("button", { className: "btn", textContent: "Open the sign-in page", onclick: () => window.open(p.verifyUrl, "_blank", "noopener") }),
+          el("button", { className: "btn small", textContent: "Cancel", onclick: () => loadAccount("/api/cloud/cancel", {}) })),
+        el("p", { className: "lead", textContent: `Waiting for approval… the code works for ${Math.max(0, Math.round((p.expiresAt - Date.now()) / 60000))} more min.` })];
+    }
+    return [...head, err,
+      el("div", { className: "row" }, el("button", { className: "btn primary", textContent: "Sign in with your Omni account", onclick: async () => {
+        // Open the tab now, inside the click, or the browser blocks it as a
+        // pop-up; point it at the approval page once the code arrives.
+        const w = window.open("", "_blank");
+        if (w) w.opener = null;
+        await loadAccount("/api/cloud/connect", {});
+        if (account?.pending && w) w.location.href = account.pending.verifyUrl;
+        else w?.close();
+      } })),
+      el("p", { className: "lead" }, "No account yet? Create one on ", el("a", { href: "https://omnione.globalwarningnetworks.com/register.php", target: "_blank", rel: "noopener", textContent: "omnione.globalwarningnetworks.com" }), ": it works on every Omni site, including ", site, ".")];
   }
 
   function displayPane() {
@@ -267,12 +365,13 @@ export async function openSettings(api, { onClose }) {
 
   function render() {
     tabs.forEach((b, i) => b.classList.toggle("on", TABS[i][0] === tab));
-    $("stReset").disabled = tab === "providers" || tab === "controls";
-    const pane = tab === "providers" ? providersPane()
+    $("stReset").disabled = tab === "providers" || tab === "controls" || tab === "account";
+    const pane = tab === "account" ? accountPane()
+      : tab === "providers" ? providersPane()
       : tab === "life" ? [el("h3", { textContent: "Simulation" }), el("p", { className: "lead", textContent: "How the agents live. Changes apply to the running server as soon as you save." }), ...section("life", LIFE_FIELDS)]
       : tab === "economy" ? [el("h3", { textContent: "Economy" }), el("p", { className: "lead", textContent: "Resources, the spawn timer, crafting and trade (docs/ECONOMY.md)." }), ...section("economy", ECO_FIELDS)]
       : tab === "display" ? displayPane() : controlsPane();
-    $("stPane").replaceChildren(...pane);
+    $("stPane").replaceChildren(...pane.filter(Boolean));
   }
 
   $("stReset").onclick = () => {
