@@ -229,6 +229,17 @@ const TMP = new THREE.Vector3();
 
 // ── the CRT picture on an in-world screen ──────────────────────────────────
 const PHOS = "#2ef2ff";
+const FINISHED = ["done", "failed", "cancelled"];
+// "TODAY 14:32", "YESTERDAY 09:05" or "OCT 28 17:40", for finished jobs.
+function when(ms) {
+  if (!ms) return "";
+  const d = new Date(ms), now = new Date();
+  const hm = d.toTimeString().slice(0, 5);
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86400000);
+  return diff === 0 ? `TODAY ${hm}` : diff === 1 ? `YESTERDAY ${hm}` : `${d.toLocaleString("en", { month: "short" }).toUpperCase()} ${d.getDate()} ${hm}`;
+}
+
 function drawScreen(ctx, b, i, occ, names, t) {
   const W = TEX_W, H = TEX_H;
   const g = ctx.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * 0.7);
@@ -564,6 +575,12 @@ export class Terminal {
     this.line("");
     if (mine) this.item(`Live session: ${mine.title}`, () => this.go(() => this.jobScreen(mine.id, true)));
     else if (op) this.line(`> ${(names.get(op) || op).toUpperCase()} IS WAITING FOR A JOB`, "dim");
+    const here = this.finishedHere();
+    if (here.length) {
+      const last = here.at(-1);
+      this.item(`Last finished here: ${last.title.slice(0, 34)}`, () => this.go(() => this.jobScreen(last.id, false)), `st-${last.status}`);
+      if (here.length > 1) this.item(`Finished work here (${here.length})`, () => this.go(() => this.finishedList()));
+    }
     this.item("Job board", () => this.go(() => this.board()));
     this.item("Post a job", () => this.go(() => this.postForm()));
     this.item(`Code blocks${blocks ? ` (${blocks})` : ""}`, () => this.go(() => this.blocksScreen()));
@@ -572,22 +589,88 @@ export class Terminal {
     this.item("Log off", () => this.h.onExit());
   }
 
+  // Finished jobs (done or failed) in this computer's project, oldest first.
+  finishedHere() {
+    const root = String(this.b.data.root).toLowerCase();
+    return this.ws.jobs.filter((j) => (j.status === "done" || j.status === "failed") && String(j.root).toLowerCase() === root);
+  }
+
   board() {
     this.header();
     this.line("JOB BOARD", "hd2");
     const jobs = [...this.ws.jobs].reverse();
     if (!jobs.length) this.line("NO JOBS POSTED YET. [POST A JOB] FROM THE MAIN MENU.", "dim");
-    for (const j of jobs.slice(0, 18)) {
-      // One line per job: state, title, who. The project and pay are on the job's own screen.
-      this.item(`${j.status} · ${j.title.slice(0, 30)}${j.agentName ? ` · ${j.agentName}` : ""}`.toUpperCase(),
-        () => this.go(() => this.jobScreen(j.id, j.status === "running")), `st-${j.status}`);
+    // One line per job: state, title, who. The project and pay are on the job's own screen.
+    const row = (j) => this.item(`${j.status} · ${j.title.slice(0, 30)}${j.agentName ? ` · ${j.agentName}` : ""}`.toUpperCase(),
+      () => this.go(() => this.jobScreen(j.id, j.status === "running")), `st-${j.status}`);
+    const active = jobs.filter((j) => !FINISHED.includes(j.status)), finished = jobs.filter((j) => FINISHED.includes(j.status));
+    active.slice(0, 10).forEach(row);
+    if (finished.length) { this.line(""); this.line("FINISHED", "dim"); finished.slice(0, 12).forEach(row); }
+    this.item("Back", () => this.back());
+  }
+
+  finishedList() {
+    this.header();
+    this.line(`FINISHED WORK · ${this.b.data.name.toUpperCase()}`, "hd2");
+    for (const j of [...this.finishedHere()].reverse()) {
+      this.item(`${j.status} · ${when(j.endedAt)} · ${j.title.slice(0, 28)}${j.agentName ? ` · ${j.agentName}` : ""}`.toUpperCase(),
+        () => this.go(() => this.jobScreen(j.id, false)), `st-${j.status}`);
     }
     this.item("Back", () => this.back());
   }
 
-  async jobScreen(id, follow) {
+  // A finished job opens on what it did, not on its raw log: files changed,
+  // what it read and ran, how long it took, and its report in its own words.
+  summaryScreen(job) {
+    const s = job.summary || {};
+    this.line(job.title.toUpperCase(), "hd2");
+    this.line(`${job.status.toUpperCase()} · ${(job.agentName || "UNASSIGNED").toUpperCase()} · ${job.project} · ${job.pay}C`, "dim");
+    const took = [job.endedAt && `FINISHED ${when(job.endedAt)}`, s.minutes != null && `TOOK ${s.minutes} MIN`, s.turns != null && `${s.turns} TURNS`, `${s.toolCalls} TOOL CALLS`].filter(Boolean);
+    this.line(took.join(" · "), "dim");
+    this.line("");
+    this.line("WHAT IT DID", "hd2");
+    const changed = s.changed || [];
+    if (changed.length) {
+      for (const c of changed.slice(0, 8)) this.line(`  ${c.how.toUpperCase().padEnd(13)} ${c.file}`, "k-tool");
+      if (changed.length > 8) this.line(`  ...AND ${changed.length - 8} MORE FILES`, "dim");
+    } else this.line("  CHANGED NO FILES", "dim");
+    const other = [s.reads && `READ ${s.reads} FILES/FOLDERS`, s.commands && `RAN ${s.commands} COMMANDS`, s.browser && `${s.browser} BROWSER STEPS`].filter(Boolean);
+    if (other.length) this.line(`  ${other.join(" · ")}`, "dim");
+    this.line("");
+    this.line(job.status === "done" ? "IN ITS OWN WORDS" : "WHY IT STOPPED", "hd2");
+    const gist = s.gist?.length ? s.gist : [job.result || "NO REPORT."];
+    const words = document.createElement("div");
+    words.className = "t-line t-result t-gist";
+    words.textContent = gist.join("\n");
+    this.out.append(words);
+    this.line("");
+    if (job.result && job.result.length > gist.join("\n").length + 40) this.item("Read the full report", () => this.go(() => this.reportScreen(job)));
+    if (job.logLines) this.item(`Show the work log (${job.logLines} lines)`, () => this.go(() => this.logScreen(job.id)));
+    this.item("Back", () => this.back());
+  }
+
+  reportScreen(job) {
+    this.header();
+    this.line(`REPORT · ${job.title.toUpperCase()}`, "hd2");
+    const r = document.createElement("div");
+    r.className = "t-line t-result t-gist";
+    r.textContent = job.result || "NO REPORT.";
+    this.out.append(r);
+    this.item("Back", () => this.back());
+  }
+
+  async logScreen(id) {
+    await this.jobScreen(id, false, true);
+  }
+
+  async jobScreen(id, follow, rawLog = false) {
     this.header();
     const head = this.line("LOADING JOB...", "dim");
+    if (!rawLog) {
+      let first;
+      try { first = await this.h.api(`/api/work/job?id=${encodeURIComponent(id)}`); } catch (e) { head.textContent = `ERROR: ${e.message}`; this.item("Back", () => this.back()); return; }
+      if (FINISHED.includes(first.status)) { head.remove(); this.summaryScreen(first); return; }
+    }
     const body = document.createElement("div");
     body.className = "t-log";
     this.out.append(body);

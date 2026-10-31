@@ -504,9 +504,55 @@ setInterval(tick, 3000).unref();
 for (const j of st.jobs) if (j.status === "running" || j.status === "assigned") { j.status = "open"; j.agent = null; j.log.push({ t: Date.now(), kind: "sys", text: "the server restarted; back on the board" }); touch(); }
 
 // ── views ─────────────────────────────────────────────────────────────────
+// What a finished job did, read back from its log, so a terminal can show the
+// gist without replaying hundreds of lines: files it changed, how much it
+// read and ran, how long it took, and the first lines of its report.
+const FINISHED = ["done", "failed", "cancelled"];
+const CHANGES = { write_file: "wrote", create_file: "created", edit_file: "edited", multi_edit: "edited", apply_patch: "patched", delete_path: "deleted", move_path: "moved", rename_path: "moved" };
+const READS = /^(read_file|read_media_file|list_dir|find_files|grep|search_files|project_inspect|glob)$/;
+const RUNS = /^(run_shell|start_process|bash|shell|exec|run_command)$/;
+function jobSummary(j) {
+  const changed = new Map();
+  let reads = 0, commands = 0, browser = 0, tools = 0;
+  for (const l of j.log) {
+    if (l.kind !== "tool") continue;
+    tools++;
+    const name = l.text.split(" ")[0];
+    const m = /"(?:path|file_path|filePath|target)":"((?:[^"\\]|\\.)*)"/.exec(l.text);
+    let file = null;
+    if (m) { try { file = JSON.parse(`"${m[1]}"`); } catch { file = m[1]; } }
+    if (CHANGES[name] && file) {
+      const rel = path.isAbsolute(file) && j.root ? path.relative(j.root, file) || path.basename(file) : file;
+      const key = rel.split(path.sep).join("/"), how = CHANGES[name], prev = changed.get(key);
+      // "wrote, edited": every kind of change, in order, once each; a delete ends the story.
+      changed.set(key, how === "deleted" || !prev ? how : prev.split(", ").includes(how) ? prev : `${prev}, ${how}`);
+    } else if (READS.test(name)) reads++;
+    else if (RUNS.test(name)) commands++;
+    else if (name.startsWith("browser_")) browser++;
+  }
+  // The report's opening, minus markdown headings and emphasis, and minus a
+  // bare "Report — <name>" title line.
+  const lines = String(j.result || "").split(/\r?\n/).map((x) => x.replace(/^#+\s*|\*\*|__|`/g, "").trim()).filter(Boolean)
+    .filter((x, i) => !(i === 0 && /^(report|summary|final report)\b/i.test(x) && x.length < 60));
+  return {
+    minutes: j.startedAt && j.endedAt ? Math.max(0.1, Math.round((j.endedAt - j.startedAt) / 6000) / 10) : null,
+    turns: j.turns ?? null,
+    toolCalls: j.toolCalls ?? tools,
+    changed: [...changed].map(([file, how]) => ({ file, how })).slice(0, 40),
+    reads, commands, browser,
+    gist: lines.slice(0, 6),
+  };
+}
+
 function publicJob(j, withLog = false) {
   const { log: l, final, ...rest } = j;
-  return { ...rest, agentName: j.agent ? nameOf(j.agent) : null, fromName: nameOf(j.from), log: withLog ? l : l.slice(-3) };
+  return {
+    ...rest,
+    agentName: j.agent ? nameOf(j.agent) : null, fromName: nameOf(j.from),
+    logLines: l.length,
+    log: withLog ? l : l.slice(-3),
+    ...(FINISHED.includes(j.status) ? { summary: jobSummary(j) } : {}),
+  };
 }
 
 export function state(sinceVersion = 0) {

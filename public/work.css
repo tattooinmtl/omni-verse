@@ -407,3 +407,6 @@ body.aiming-terminal #crosshair { opacity: 0; }
 #terminal .t-line.hd2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 #terminal .t-code.t-run { max-height: calc(1.12em * 2); }
 #terminal .t-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* A finished job's report, shown as written. */
+.t-gist { white-space: pre-wrap; padding: 6px 10px; border-left: 2px solid rgba(46, 242, 255, 0.35); margin: 4px 0; }
