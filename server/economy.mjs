@@ -582,6 +582,16 @@ function produce(a, events) {
 }
 
 // Wages for finished jobs: new credits from whoever posted the work.
+// Credits from one agent to another (a hire on a hobby project).
+export function transfer(fromId, toId, amount) {
+  const from = wallet(fromId), to = wallet(toId), n = Math.max(0, Math.min(from.credits, Math.round(amount)));
+  from.credits -= n;
+  to.credits += n;
+  to.stats.earned += n;
+  touch();
+  return n;
+}
+
 export function payWages(agentId, amount) {
   const w = wallet(agentId), n = Math.max(0, Math.round(amount));
   w.credits += n;

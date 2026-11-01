@@ -21,6 +21,7 @@ export class AgentNPC {
     const h = record.spec.height;
     this.height = h;
     this.sub = null;
+    this.mood = null;
     this.setNameplate(null);
     this.hitbox = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.9, h * 0.5), h, Math.max(0.9, h * 0.5)), new THREE.MeshBasicMaterial({ visible: false }));
     this.hitbox.position.y = h / 2;
@@ -39,13 +40,15 @@ export class AgentNPC {
     this.seed = Math.random() * 10;
   }
 
-  // Name + provider · model; a substitute brain (server/life.mjs) shows as "⇄ minimax.io · …".
-  setNameplate(sub) {
+  // Name + provider · model, and its mood (server/mind.mjs); a substitute
+  // brain (server/life.mjs) shows as "⇄ minimax.io · …".
+  setNameplate(sub, mood = this.mood) {
     if (this.nameplate) { this.mesh.remove(this.nameplate); disposeObject(this.nameplate); }
     this.sub = sub;
+    this.mood = mood;
     const r = this.record;
     const line = sub ? `⇄ ${sub.provider} · ${sub.model.split("/").pop()} (for ${r.provider})` : `${r.provider} · ${r.model.split("/").pop()}`;
-    this.nameplate = makeLabel([r.spec.name, line], { color: sub ? "#ffe14d" : r.spec.palette.glow, px: 40, height: 0.26 });
+    this.nameplate = makeLabel([r.spec.name, line, mood ? `${mood.emoji} ${mood.mood}` : ""], { color: sub ? "#ffe14d" : r.spec.palette.glow, px: 40, height: 0.26 });
     this.nameplate.position.y = this.height + 0.45;
     this.mesh.add(this.nameplate);
   }

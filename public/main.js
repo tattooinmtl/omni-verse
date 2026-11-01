@@ -11,6 +11,7 @@ import { disposeObject } from "./labels.js";
 import { openNeural } from "./neural.js";
 import { EconomyView } from "./economy.js";
 import { Terminal, WorkView } from "./work.js";
+import { initInner, openAgent, openAgents, openInbox, pollInbox } from "./inner.js";
 import { buildBackdrop, displaySettings, hideModes, openSettings, runSplash, showBackdrop, showModes } from "./menu.js";
 
 const $ = (id) => document.getElementById(id);
@@ -385,6 +386,16 @@ function enterWorld({ spectate = false } = {}) {
   warm();
   setInterval(warm, 4000);
   $("statsBtn").onclick = () => showStats();
+  // Inner lives: the agents list, your inbox, and your own avatar's mind.
+  initInner({ api, openPanel, toast, agents: () => state.avatars, life: () => life, onUnread: (n) => { $("inboxCount").textContent = n ? String(n) : ""; $("inboxTag").classList.toggle("unread", n > 0); } });
+  $("agentsTag").onclick = () => openAgents();
+  $("inboxTag").onclick = () => openInbox();
+  $("mindTag").hidden = !selfRecord;
+  $("mindTag").onclick = () => selfRecord && openAgent(selfRecord.id, "mind");
+  pollInbox();
+  setInterval(pollInbox, 5000);
+  // The tray's "answered you" balloon opens the city at #inbox.
+  if (location.hash === "#inbox") { history.replaceState(null, "", location.pathname); setTimeout(() => openInbox(), 600); }
   $("lifeTag").onclick = () => api("/api/life/pause", { paused: !life.paused }).then(pollLife).catch(() => {});
   $("walletTag").onclick = () => openInventory();
   $("workTag").onclick = () => openWorkBoard();
@@ -446,6 +457,9 @@ function bindInput(canvas) {
     if (e.code === "KeyE") { if (gathering) cancelGather("Gathering cancelled"); else if (target) interact(target); }
     if (e.code === "KeyI" && selfRecord) openInventory();
     if (e.code === "KeyN") showStats();
+    if (e.code === "KeyM") openInbox();
+    if (e.code === "KeyG") openAgents();
+    if (e.code === "KeyJ" && selfRecord) openAgent(selfRecord.id, "mind");
     if (e.code === "Space") e.preventDefault();
   });
   addEventListener("keyup", (e) => player.keys.delete(e.code));
@@ -624,6 +638,8 @@ async function openFile(b, r) {
 
 function openChat(npc) {
   const rec = npc.record, s = rec.spec;
+  // A spectator isn't standing in the street: it writes to the agent's inbox.
+  if (!selfRecord) return openAgent(rec.id, "message");
   const history = chats.get(rec.id) || [];
   chats.set(rec.id, history);
   const log = el("div", { className: "chat-log" });
@@ -645,10 +661,19 @@ function openChat(npc) {
     try {
       const loc = city.locate(player.pos);
       const where = loc ? `${loc.b.data.name}, ${loc.floor === 0 ? "lobby" : `floor ${loc.floor} (${loc.b.data.floors[loc.floor].name})`}` : "the street";
-      const { text: reply, reasoning } = await api("/api/chat", { avatarId: rec.id, messages: history, location: where });
+      const r = await api("/api/chat", { avatarId: rec.id, messages: history, location: where });
       wait.remove();
-      history.push({ role: "assistant", content: reply, reasoning });
-      add("assistant", reply);
+      if (r.busy) {
+        // Busy at a job or a game: the words go to its inbox and it answers when it's free.
+        history.pop();
+        try {
+          const q = await api("/api/inbox/send", { agent: rec.id, text });
+          add("assistant", q.queued ? `${s.name} is busy (${q.busy}). Your message is in their inbox; the answer will come as a notification.` : q.reply.text, q.queued ? "err" : "");
+        } catch (err2) { add("assistant", `${s.name} is busy (${r.busy}) and can't talk now. ${err2.message}`, "err"); }
+        return;
+      }
+      history.push({ role: "assistant", content: r.text, reasoning: r.reasoning });
+      add("assistant", r.text);
     } catch (err) {
       wait.remove();
       history.pop();
@@ -662,7 +687,14 @@ function openChat(npc) {
   api("/api/sim/hold", { agent: rec.id, on: true }).catch(() => {});
   const w = state.eco?.wallets[rec.id];
   const sub = life.subs?.[rec.id];
-  const head = el("div", {},
+  const mood = life.minds?.[rec.id], busy = life.busy?.[rec.id];
+  const inner = el("div", { className: "row inner-btns" },
+    el("span", { className: "mood-chip", style: `--mc:${mood?.color || "#22e6ff"}`, textContent: mood ? `${mood.emoji} ${mood.label}` : "…" }),
+    el("button", { className: "btn small", textContent: "🧠 Mind", onclick: () => openAgent(rec.id, "mind") }),
+    el("button", { className: "btn small", textContent: "📖 Read diary", onclick: () => openAgent(rec.id, "diary") }),
+    el("button", { className: "btn small", textContent: "🎮 Games", onclick: () => openAgent(rec.id, "games") }));
+  const head = el("div", {}, inner,
+    busy && busy !== "talking with a visitor" ? el("p", { className: "note", style: "color:var(--amber)", textContent: `${s.name} is busy: ${busy}. What you say goes to their inbox.` }) : "",
     sub ? el("p", { className: "note", style: "color:#ffe14d", textContent: `⇄ ${rec.provider} is down (${sub.reason}); ${s.name} is thinking with ${sub.provider} · ${sub.model} for now.` }) : "",
     el("div", { className: "species", style: "color:var(--pink);font-weight:600", textContent: `${s.species} · ${rec.provider} / ${rec.model} · ${npc.whereabouts}` }),
     w ? el("p", { className: "note", textContent: `Wallet: ${w.credits} ⌬ · ${invLine(w.inv)} · ${w.items.length} decorations${w.kiosk ? " · runs a kiosk" : ""}` }) : "",
@@ -695,13 +727,13 @@ function renderWallet() {
   if (g) $("objective").replaceChildren(el("b", { textContent: "OBJECTIVE" }), g.why[0].toUpperCase() + g.why.slice(1));
 }
 
-function toast(text, color = "#22e6ff") {
+function toast(text, color = "#22e6ff", ms = 2600) {
   const t = el("div", { className: "toast", textContent: text });
   t.style.setProperty("--tc", color);
   $("toasts").append(t);
   while ($("toasts").children.length > 5) $("toasts").firstChild.remove();
-  setTimeout(() => t.classList.add("out"), 2600);
-  setTimeout(() => t.remove(), 3300);
+  setTimeout(() => t.classList.add("out"), ms);
+  setTimeout(() => t.remove(), ms + 700);
 }
 
 // Press E on a block: a circular bar fills for gatherSeconds; moving away cancels.
@@ -1065,10 +1097,14 @@ async function pollLife() {
   tag.textContent = !s.enabled ? "LIFE OFF" : s.paused ? "LIFE ⏸ PAUSED" : `LIFE ● ${s.budget.left}/${s.budget.perHour} calls/h${s.building ? " · building" : ""}`;
   tag.classList.toggle("off", !s.active);
   life.subs = s.subs || {};
+  life.minds = s.minds || {};
+  life.busy = s.busy || {};
   for (const n of npcs) {
-    const sub = life.subs[n.record.id] || null;
-    if ((sub?.provider || null) !== (n.sub?.provider || null)) n.setNameplate(sub);
+    const sub = life.subs[n.record.id] || null, mood = life.minds[n.record.id] || null;
+    if ((sub?.provider || null) !== (n.sub?.provider || null) || mood?.mood !== n.mood?.mood) n.setNameplate(sub, mood);
   }
+  const mine = selfRecord && life.minds[selfRecord.id];
+  if (mine) { $("mindTag").textContent = `${mine.emoji} ${mine.mood.toUpperCase()}`; $("mindTag").style.color = mine.color; $("mindTag").title = `Your state of mind: ${mine.label} (J)`; }
   for (const [id, meta] of Object.entries(s.houses)) {
     const lot = city.lotFor(id);
     if (!lot || lot.version === meta.version) continue;
@@ -1095,6 +1131,12 @@ function feed(e) {
     trade: `⌬ ${e.summary}`,
     kiosk: `🏪 ${e.summary}`,
     substitute: `⇄ ${who[0]}: ${e.summary}`,
+    diary: `📖 ${who[0]} ${e.summary}`,
+    game: `🎮 ${who[0]} ${e.summary}`,
+    hire: `🤝 ${e.summary}`,
+    collab: `🤝 ${e.summary}`,
+    message: `📨 ${who[0]} ${e.summary}`,
+    job: `🛠 ${who[0]} ${e.summary}`,
     error: `⚠ ${who[0]}: ${e.summary}`,
   }[e.type];
   if (!msg) return;

@@ -338,6 +338,14 @@ export function hold(id, on) {
   return { held: Boolean(on) };
 }
 
+// Busy in the world: talking on the street, or held by a visitor's chat.
+export function busyIn(id) {
+  const b = bots.get(id);
+  if (b?.meeting) return "in a conversation on the street";
+  if ((holds.get(id) || 0) > Date.now()) return "talking with a visitor";
+  return null;
+}
+
 function where(b) {
   if (b.meeting) return "talking on the street";
   if (b.desk !== null && b.inside) return `at desk ${b.desk + 1} in ${buildingByRoot(b.inside)?.data.name || "a tower"}`;

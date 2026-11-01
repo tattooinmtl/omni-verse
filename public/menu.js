@@ -144,6 +144,10 @@ const LIFE_FIELDS = {
   retryOriginalMin: ["Retry own provider (min)", "how often a substituted agent tries its own provider again"],
   journalKeep: ["Live journal events", "older events move to journal-archive.jsonl; relationships keep counting them"],
   recordVisitorChat: ["Remember your chats", "keep what you say to agents in the journal (keys and passwords are always scrubbed)"],
+  diaries: ["Diaries", "agents write about their days; read them from an agent's panel"],
+  diaryEveryMin: ["Minutes between diary entries", "per agent; each entry is one LLM call"],
+  hobbies: ["Hobby games", "off duty, agents make browser games and hire each other to improve them"],
+  hobbyEveryMin: ["Minutes between hobby sessions", "per agent, sooner when playful or bored; a game is one long LLM reply"],
 };
 const ECO_FIELDS = {
   enabled: ["Economy", "resources, crafting, kiosks and credits"],
