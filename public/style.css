@@ -222,3 +222,20 @@ details.nokey { margin-top: 8px; color: var(--muted); font-size: 13px; }
   .agent-row .state, .agent-row .acts { grid-column: 2 / -1; }
   .inbox-cols { grid-template-columns: 1fr; }
 }
+
+/* ── Location finder ────────────────────────────────────── */
+#findTag { color: var(--cyan); border-color: rgba(34, 230, 255, 0.6); }
+#panelFind { margin-right: 6px; }
+#finder { position: fixed; top: 12vh; left: 50%; transform: translateX(-50%); width: min(620px, calc(100vw - 32px)); z-index: 30; padding: 14px 16px; background: var(--panel); border: 1px solid var(--cyan); border-radius: 10px; box-shadow: 0 0 40px rgba(34, 230, 255, 0.35); }
+.find-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.find-head b { font: 700 14px Orbitron, sans-serif; letter-spacing: 0.1em; color: var(--cyan); }
+.find-row { display: flex; gap: 8px; }
+.find-row input { flex: 1; min-width: 0; font-size: 17px; padding: 9px 12px; }
+#findPreview { margin: 10px 2px 0; color: var(--green); font-size: 15px; min-height: 1.3em; }
+#findPreview.err { color: #ff9f1c; }
+#findChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { font: 600 13px Rajdhani, sans-serif; color: var(--text); background: rgba(34, 230, 255, 0.08); border: 1px solid var(--line); border-radius: 14px; padding: 4px 11px; cursor: pointer; }
+.chip:hover { border-color: var(--cyan); color: var(--cyan); }
+#nav { position: absolute; top: 128px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; max-width: calc(100vw - 32px); padding: 6px 8px 6px 12px; border: 1px solid var(--cyan); border-radius: 8px; background: rgba(1, 8, 14, 0.82); pointer-events: auto; box-shadow: 0 0 18px rgba(34, 230, 255, 0.3); }
+#navWhere { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#navLeft { font: 600 13px Orbitron, sans-serif; color: var(--amber); white-space: nowrap; }

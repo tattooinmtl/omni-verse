@@ -107,12 +107,14 @@
   <div id="crosshair"></div>
   <div id="hudTop">
     <span id="modeTag" class="tag">WALK</span>
+    <button id="findTag" class="tag btn-tag find" title="Find a place: a job, resources, something to buy… (L)">🧭 FIND</button>
     <span id="locTag" class="tag">Street</span>
     <span id="selfTag" class="tag"></span>
     <button id="walletTag" class="tag btn-tag" title="Inventory (I)" hidden></button>
     <button id="mindTag" class="tag btn-tag mind" title="Your state of mind (J)" hidden>🧠 MIND</button>
+    <i class="hud-break"></i>
+    <div id="objective" hidden></div>
   </div>
-  <div id="objective" hidden></div>
   <div id="hudRight">
     <button id="agentsTag" class="tag btn-tag" title="Every agent: mood, busy or free, diary, games (G)"></button>
     <button id="inboxTag" class="tag btn-tag inbox" title="Your messages to the agents and their answers (M)">📨 INBOX <b id="inboxCount"></b></button>
@@ -127,13 +129,22 @@
     <div class="g-text"><b id="gatherKind"></b><span id="gatherTime"></span></div>
   </div>
   <div id="toasts"></div>
-  <div id="help">WASD move · Mouse look · Space jump / up · C down · Shift run / boost · <b>F</b> fly · <b>E</b> interact / gather · <b>I</b> inventory · <b>G</b> agents · <b>M</b> inbox · <b>J</b> your mind · V 3rd person · <b>N</b> stats · Esc release</div>
+  <div id="nav" hidden><span class="nav-ico">🧭</span><span id="navWhere"></span><b id="navLeft"></b>
+    <button id="navJump" class="btn small" title="Skip the walk">⏩ Jump there</button><button id="navStop" class="btn small" title="Stop (or just move)">✕</button></div>
+  <div id="help">WASD move · Mouse look · Space jump / up · C down · Shift run / boost · <b>F</b> fly · <b>E</b> interact / gather · <b>I</b> inventory · <b>L</b> find · <b>G</b> agents · <b>M</b> inbox · <b>J</b> your mind · V 3rd person · <b>N</b> stats · Esc release</div>
+</div>
+
+<div id="finder" hidden>
+  <div class="find-head"><b>🧭 FIND A PLACE</b><button id="findClose" class="btn small">✕</button></div>
+  <div class="find-row"><input id="findInput" placeholder="find a job · resources · buy circuit · sell · home · Beam…" maxlength="120" autocomplete="off"><button id="findGo" class="btn">Go</button></div>
+  <p id="findPreview"></p>
+  <div id="findChips"></div>
 </div>
 
 <div id="resume" hidden><div><h2>OMNIVERSE</h2><p>Click to enter the grid</p><button id="toMenu" class="btn small">◀ Main menu</button></div></div>
 
 <div id="panel" hidden>
-  <div class="panel-head"><h3 id="panelTitle"></h3><button id="panelClose" class="btn small">Close ✕</button></div>
+  <div class="panel-head"><h3 id="panelTitle"></h3><button id="panelFind" class="btn small" title="Find a place (L)">🧭 Find</button><button id="panelClose" class="btn small">Close ✕</button></div>
   <div id="panelBody"></div>
 </div>
 
@@ -161,6 +172,7 @@
     <span class="tag" id="nLayer">GLOBAL LAYER</span>
     <button class="tag btn-tag" id="nBack" hidden>◀ Global</button>
     <button class="tag btn-tag" id="nWikiBtn">☰ Wiki</button>
+    <button class="tag btn-tag" id="nFind" title="Close the map and find a place in the city">🧭 Find</button>
     <button class="tag btn-tag" id="nClose">Close ✕</button>
   </div>
   <div id="nCross"></div>

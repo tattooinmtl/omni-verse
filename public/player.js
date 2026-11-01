@@ -21,6 +21,7 @@ export class Player {
     this.onGround = false;
     this.keys = new Set();
     this.avatar = null;
+    this.autopilot = null;
     this.dragLook = false;
     this.sens = 1;
     document.addEventListener("mousemove", (e) => {
@@ -54,8 +55,67 @@ export class Player {
     if (yaw !== undefined) { this.yaw = yaw; this.pitch = 0; }
   }
 
+  // Autopilot (the location finder): walk a list of waypoints, colliding like
+  // you do, or, for a spectator, glide over the city ignoring walls.
+  // { pts, ghost, follow(), onArrive, onCancel }; any movement key takes over.
+  go(plan) {
+    this.autopilot = { ...plan, i: 0, best: Infinity, since: 0 };
+  }
+  stop(why) {
+    const ap = this.autopilot;
+    this.autopilot = null;
+    if (ap && why) ap.onCancel?.(why);
+  }
+
+  steer(dt) {
+    const ap = this.autopilot, k = this.keys;
+    if (["KeyW", "KeyA", "KeyS", "KeyD", "Space", "KeyC"].some((c) => k.has(c))) { this.stop("you took the controls"); return false; }
+    if (ap.follow) { const f = ap.follow(); if (f) ap.pts[ap.pts.length - 1].copy(f); }
+    const last = ap.i === ap.pts.length - 1, p = ap.pts[ap.i];
+    const dx = p.x - this.pos.x, dz = p.z - this.pos.z, dy = p.y - this.pos.y;
+    const d = ap.ghost ? Math.hypot(dx, dy, dz) : Math.hypot(dx, dz);
+    if (d < (last ? 0.45 : 0.9)) {
+      if (!last) { ap.i++; ap.best = Infinity; ap.since = 0; return true; }
+      this.autopilot = null;
+      this.vel.set(0, 0, 0);
+      ap.onArrive?.();
+      return false;
+    }
+    // Turn towards where we're going (or, on the final metres, what we came to see).
+    const want = Math.atan2(-dx, -dz);
+    let dyaw = Math.atan2(Math.sin(want - this.yaw), Math.cos(want - this.yaw));
+    if (d > 1.5) this.yaw += dyaw * (1 - Math.exp(-6 * dt));
+    this.pitch *= Math.exp(-4 * dt);
+    if (ap.ghost) {
+      // A spectator has no body: a smooth glide, quick in the middle, gentle at the ends.
+      const speed = Math.min(70, 4 + d * 1.6);
+      const s = Math.min(d, speed * dt);
+      this.pos.x += (dx / d) * s; this.pos.y += (dy / d) * s; this.pos.z += (dz / d) * s;
+      this.vel.set(0, 0, 0);
+      return true;
+    }
+    // A brisk run, and a sprint on long stretches so crossing the city doesn't take minutes.
+    const run = (last && d < 4 ? 4 : d > 40 ? Math.min(28, 11 + (d - 40) * 0.2) : 11) * (this.fast ? 1.4 : 1);
+    const a = 1 - Math.exp(-(this.onGround ? 14 : 3) * dt);
+    this.vel.x += ((dx / d) * run - this.vel.x) * a;
+    this.vel.z += ((dz / d) * run - this.vel.z) * a;
+    // Stuck on a corner or a ledge: hop, then skip to the waypoint.
+    ap.since += dt;
+    if (d < ap.best - 0.25) { ap.best = d; ap.since = 0; }
+    if (ap.since > 0.8 && this.onGround) this.vel.y = 8;
+    if (ap.since > 2) { this.pos.set(p.x, p.y, p.z); ap.since = 0; ap.best = Infinity; }
+    return true;
+  }
+
   update(dt, t) {
     const k = this.keys;
+    if (this.autopilot && this.steer(dt)) {
+      if (this.autopilot?.ghost) { this.placeCamera(t); return; }
+      this.vel.y = Math.max(this.vel.y - 24 * dt, -60);
+      this.move(dt);
+      this.placeCamera(t);
+      return;
+    }
     if (this.locked) {
       const f = (k.has("KeyW") ? 1 : 0) - (k.has("KeyS") ? 1 : 0);
       const r = (k.has("KeyD") ? 1 : 0) - (k.has("KeyA") ? 1 : 0);
