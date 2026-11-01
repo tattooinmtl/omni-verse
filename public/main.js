@@ -12,6 +12,7 @@ import { openNeural } from "./neural.js";
 import { EconomyView } from "./economy.js";
 import { Terminal, WorkView } from "./work.js";
 import { initInner, openAgent, openAgents, openInbox, pollInbox } from "./inner.js";
+import { SUGGESTIONS, resolve as findPlace } from "./finder.js";
 import { buildBackdrop, displaySettings, hideModes, openSettings, runSplash, showBackdrop, showModes } from "./menu.js";
 
 const $ = (id) => document.getElementById(id);
@@ -386,6 +387,12 @@ function enterWorld({ spectate = false } = {}) {
   warm();
   setInterval(warm, 4000);
   $("statsBtn").onclick = () => showStats();
+  // The location finder: the HUD, every panel and the neural map have a button for it.
+  $("findTag").onclick = () => openFinder();
+  $("panelFind").onclick = () => openFinder();
+  $("nFind").onclick = () => { $("nClose").click(); openFinder(); };
+  $("navStop").onclick = () => player.stop("stopped");
+  $("navJump").onclick = () => jumpThere();
   // Inner lives: the agents list, your inbox, and your own avatar's mind.
   initInner({ api, openPanel, toast, agents: () => state.avatars, life: () => life, onUnread: (n) => { $("inboxCount").textContent = n ? String(n) : ""; $("inboxTag").classList.toggle("unread", n > 0); } });
   $("agentsTag").onclick = () => openAgents();
@@ -444,6 +451,7 @@ function bindInput(canvas) {
   addEventListener("keydown", (e) => {
     if (termMode) return; // the terminal handles its own keys
     if (e.target.matches?.("input, textarea, select") || neuralOpen) return;
+    if (e.code === "KeyL") { e.preventDefault(); openFinder(); return; }
     if (panelOpen) {
       if (e.code === "Escape") closePanel(false);
       if (panelKeys) panelKeys(e);
@@ -495,6 +503,7 @@ function loop() {
   ecoView.update(t, dt);
   workView.update(t, dt, player.pos, names());
   updateGather();
+  updateNav(dt);
   for (const o of followCamera) o.position.copy(camera.position);
 
   interiorTimer -= dt;
@@ -1186,5 +1195,142 @@ async function showStats(agentId = null, after = null) {
   } catch (e) {
     console.error(e);
     done();
+  }
+}
+
+// ═════════════════════════════ Location finder ═══════════════════════════
+// "find a job", "resources", "buy circuit", "sell", "home", "Beam"…: finder.js
+// picks the nearest place that fits; this walks you there (a spectator
+// glides) and does the obvious thing on arrival: sit at the computer, start
+// gathering, open the kiosk or the Exchange, talk to the agent.
+let nav = null; // { dest, t }
+const findCtx = () => ({ pos: player.pos, city, eco: state.eco, work: state.work, avatars: state.avatars, npcs, self: selfRecord, workView });
+
+function openFinder() {
+  if (!player) return;
+  if (termMode?.phase === "on") leaveComputer();
+  const box = $("finder"), input = $("findInput"), preview = $("findPreview");
+  const show = () => {
+    const q = input.value.trim();
+    const d = q ? findPlace(q, findCtx()) : null;
+    preview.className = d?.error ? "err" : "";
+    preview.textContent = !q ? "Where to? A few words are enough." : d.error ? d.error : `→ ${d.label} · ${d.where ? `${d.where} · ` : ""}${Math.round(Math.hypot(d.to.x - player.pos.x, d.to.z - player.pos.z))} m`;
+  };
+  $("findChips").replaceChildren(...SUGGESTIONS.map((t) => el("button", { className: "chip", type: "button", textContent: t, onclick: () => { input.value = t; go(); } })));
+  const close = () => { box.hidden = true; input.onkeydown = null; };
+  const go = () => {
+    const d = findPlace(input.value, findCtx());
+    if (!d) return;
+    if (d.error && !d.fallback) { show(); input.select(); return; }
+    if (d.error) toast(d.error, "#ff9f1c", 5000);
+    close();
+    if (panelOpen && !termMode) closePanel(false);
+    navigate(d.error ? d.fallback : d);
+  };
+  input.oninput = show;
+  input.onkeydown = (e) => { e.stopPropagation(); if (e.key === "Enter") go(); if (e.key === "Escape") close(); };
+  $("findGo").onclick = go;
+  $("findClose").onclick = close;
+  box.hidden = false;
+  player.keys.clear();
+  document.exitPointerLock();
+  input.value = "";
+  show();
+  // At once, so the first letters typed land here and not in a panel's input underneath.
+  input.focus();
+}
+
+// Waypoints from here to there: out of the tower we're in, along the street
+// and alleys, in through the door of the one we're going to.
+function plan(d) {
+  const ghost = !selfRecord;
+  const pts = [];
+  const here = city.locate(player.pos);
+  if (ghost) {
+    // Up, across, down: a glide over the city.
+    const cruise = Math.max(player.pos.y, 26);
+    if (d.building) {
+      const door = city.doorSpot(d.building);
+      pts.push(new THREE.Vector3(player.pos.x, cruise, player.pos.z), new THREE.Vector3(door.x, cruise, door.z), door, d.to.clone());
+    } else pts.push(new THREE.Vector3(player.pos.x, cruise, player.pos.z), new THREE.Vector3(d.to.x, cruise, d.to.z), d.to.clone());
+    return { pts, ghost };
+  }
+  if (player.fly) { player.toggleFly(); updateMode(); }
+  let from = player.pos.clone();
+  if (here && here.b !== d.building) {
+    // Upstairs: the elevator first, then out through the lobby.
+    if (here.floor > 0) { player.teleport(city.elevatorSpot(here.b, 0), city.yawOut(here.b)); from = player.pos.clone(); }
+    pts.push(city.lobbySpot(here.b), city.doorSpot(here.b));
+    from = city.doorSpot(here.b);
+  } else if (here && here.floor > 0) player.teleport(city.elevatorSpot(here.b, 0), city.yawOut(here.b));
+  if (d.building && !(here && here.b === d.building)) {
+    const door = city.doorSpot(d.building);
+    pts.push(...city.route(from, door), city.lobbySpot(d.building));
+  } else if (!d.building) pts.push(...city.route(from, d.to));
+  pts.push(d.to.clone());
+  for (const p of pts) p.y = Math.max(0, p.y);
+  return { pts, ghost: false };
+}
+
+function navigate(d) {
+  if (gathering) cancelGather();
+  const { pts, ghost } = plan(d);
+  nav = { dest: d, t: 0 };
+  $("nav").hidden = false;
+  $("navWhere").textContent = `${d.label}${d.where ? ` · ${d.where}` : ""}`;
+  player.go({
+    pts, ghost,
+    follow: d.follow ? () => {
+      const n = d.follow;
+      const back = new THREE.Vector3(player.pos.x - n.pos.x, 0, player.pos.z - n.pos.z).setLength(1.8);
+      return n.pos.clone().add(back).setY(0);
+    } : null,
+    onArrive: () => arrive(d),
+    onCancel: (why) => { endNav(); toast(`Autopilot off: ${why}`, "#6f97a6"); },
+  });
+  toast(`🧭 On my way to ${d.label}`, "#22e6ff");
+}
+
+function endNav() { nav = null; $("nav").hidden = true; }
+
+function updateNav(dt) {
+  if (!nav || !player.autopilot) return;
+  nav.t -= dt;
+  if (nav.t > 0) return;
+  nav.t = 0.25;
+  const ap = player.autopilot;
+  let left = Math.hypot(ap.pts[ap.i].x - player.pos.x, ap.pts[ap.i].z - player.pos.z);
+  for (let i = ap.i; i < ap.pts.length - 1; i++) left += Math.hypot(ap.pts[i + 1].x - ap.pts[i].x, ap.pts[i + 1].z - ap.pts[i].z);
+  $("navLeft").textContent = `${Math.round(left)} m`;
+}
+
+// Too far to walk: straight to the last waypoint.
+function jumpThere() {
+  const ap = player.autopilot;
+  if (!ap) return;
+  const end = ap.pts.at(-1);
+  if (ap.follow) end.copy(ap.follow());
+  player.teleport(end);
+  ap.i = ap.pts.length - 1;
+}
+
+function arrive(d) {
+  endNav();
+  // Face what we came for.
+  const look = d.face || (d.then?.type === "agent" ? d.follow.pos : null);
+  if (look) player.yaw = Math.atan2(-(look.x - player.pos.x), -(look.z - player.pos.z));
+  else if (d.yaw !== undefined) player.yaw = d.yaw;
+  player.pitch = 0;
+  const t = d.then;
+  if (!t) return toast(`📍 You're at ${d.label}`, "#39ff88");
+  switch (t.type) {
+    case "computer": return useComputer(t.b, t.desk);
+    case "node":
+      if (!selfRecord) return toast(`📍 ${d.label}: spectators can look but not gather`, "#39ff88");
+      if (!ecoView.node(t.id)) return toast("Someone got that block first. Press L for the next one.", "#ff9f1c");
+      return startGather(t.id);
+    case "kiosk": return openKiosk(t.agentId);
+    case "exchange": return openExchange();
+    case "agent": return openChat(t.npc);
   }
 }

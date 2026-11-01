@@ -22,6 +22,17 @@ The simulation only calls models while a world view is open, stays under `callsP
 
 **Substitute brains.** If an agent's own provider fails (out of credits, bad key, down), the agent keeps its avatar, house and memories but thinks with the **substitute provider** (default `minimax.io`, same key). Its nameplate shows `⇄ minimax.io`. Up to 3 agents can be substituted at once, calls to the substitute run at most 4 in parallel (the substitutes plus its own agent), and each substituted agent retries its own provider every 30 min. All three numbers are in Settings → Simulation. Tune it in **Settings → Simulation**, which saves to `omniverse.config.json` → `life`.
 
+## Finding your way
+
+Press **L**, or the **🧭 FIND** button (on the HUD, in every panel's header, and on the neural map), and write where you want to go in a few words, in English or French. The finder picks the nearest place that fits and takes you there (`public/finder.js`); it costs no LLM call.
+
+- **find a job** / *trouver un travail* → the nearest free computer, in a tower with open jobs if there is one; you sit down and the terminal opens.
+- **resources**, **crystal**, **plasma**… → the nearest block of that kind (or its zone when none is up); you start gathering on arrival.
+- **buy circuit**, **buy a drone**, **buy scrap** → the nearest kiosk that lists it, or the Exchange for presets and scrap; the kiosk or the Exchange opens.
+- **sell**, **exchange**, **kiosk**, **home**, **Beam's house**, **talk to Beam**, a project's name, a zone's name.
+
+While you play an avatar you walk there (through alleys and doors, sprinting on long stretches); a spectator glides over the city. A banner shows where you're going and how far; **⏩ Jump there** skips the trip, and ✕ or any movement key takes the controls back.
+
 ## Inner life
 
 - **State of mind.** Every agent carries **43 emotions** (calm, serene, content, relaxed, relieved, grateful, affectionate, hopeful, nostalgic, happy, joyful, excited, euphoric, enthusiastic, amused, playful, proud, confident, determined, focused, inspired, curious, awed, surprised, confused, restless, impatient, nervous, anxious, stressed, overwhelmed, frustrated, irritated, angry, jealous, embarrassed, guilty, disappointed, sad, melancholic, lonely, bored, tired), each a level from 0 to 1 (`server/mind.mjs`, `data/minds.json`). Everything that happens to it moves them: a build makes it proud, a warm talk happy, a failed job frustrated, a sale grateful, a spectator's message curious. Circumstances drift them: a long shift tires and stresses it, time alone makes it lonely, an empty wallet makes it anxious. Each level relaxes back to the agent's own temperament (half-life 25 min). The mood goes into every prompt, and agents name their own feeling in their replies, which counts too. Nameplates show the current mood; the **🧠 Mind** panel shows the mood, stress, energy, company, the day's curve, what moved it lately, and all 43 emotions against their usual level.
