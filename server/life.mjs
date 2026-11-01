@@ -11,6 +11,7 @@ import { ANIMS, SHAPES, color, extractJson, listAvatars, num, text, vec } from "
 import { economyConfig, lifeConfig as cfg, providerEnabled, providerPrefs } from "./settings.mjs";
 import * as eco from "./economy.mjs";
 import * as work from "./work.mjs";
+import * as mind from "./mind.mjs";
 
 const DIR = path.join(APP_ROOT, "data");
 const HOUSES = path.join(DIR, "houses.json");
@@ -70,6 +71,7 @@ export function record(ev) {
   const e = { id: `e${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, t: Date.now(), ...ev };
   events.push(e);
   foldRelation(rel.pairs, e);
+  try { mind.appraise(e); } catch (err) { console.error("life: mood update failed:", err.message); }
   try {
     fs.mkdirSync(DIR, { recursive: true });
     fs.appendFileSync(JOURNAL, JSON.stringify(e) + "\n");
@@ -206,7 +208,7 @@ function providerDown(e) {
   return !status && /fetch failed|ECONN|ETIMEDOUT|ENOTFOUND|timed out|network|socket|quota|credit|balance|key/i.test(m);
 }
 
-async function think(avatar, messages, maxTokens = 900) {
+export async function thinkFor(avatar, messages, maxTokens = 900) {
   if (budgetLeft() <= 0) throw Object.assign(new Error("hourly LLM budget used up"), { status: 429 });
   try {
     try {
@@ -223,7 +225,7 @@ async function think(avatar, messages, maxTokens = 900) {
   }
 }
 // Providers switched off in Settings sit out of the simulation.
-const available = (a) => (backoff.get(a.id) || 0) < Date.now() && providerEnabled(a.provider);
+export const available = (a) => (backoff.get(a.id) || 0) < Date.now() && providerEnabled(a.provider);
 export const isActive = () => active();
 // Someone has a view of the city open (any tab, even a background one).
 export const viewerAlive = () => Date.now() - lastSeen < 45_000;
@@ -255,7 +257,7 @@ function loadRelations() {
 }
 export const relations = () => rel.pairs;
 
-function memories(id, n = 6) {
+export function memories(id, n = 6) {
   const avatars = new Map(listAvatars().map((a) => [a.id, a.spec.name]));
   // Failures are not memories: they only confused the prompts as "- error".
   return events.filter((e) => e.agents?.includes(id) && e.type !== "error").slice(-n).map((e) => {
@@ -269,6 +271,12 @@ function memories(id, n = 6) {
       case "trade": return e.agents[0] === id ? `- ${others} bought from your kiosk: ${e.what}` : `- you bought ${e.what} from ${others}`;
       case "kiosk": return "- you opened your kiosk";
       case "produce": return `- ${e.summary}`;
+      case "message": return `- a spectator messaged you and you answered`;
+      case "diary": return `- you wrote in your diary: ${e.summary.replace(/^wrote in its diary: /, "")}`;
+      case "game": return `- you ${e.update ? "updated" : "made"} a game: ${e.summary}`;
+      case "hire": return e.agents[0] === id ? `- you tried to hire ${others}: ${e.summary}` : `- ${others} offered you work: ${e.summary}`;
+      case "collab": return `- collaboration with ${others}: ${e.summary}`;
+      case "job": return `- at work: ${e.summary}`;
       default: return `- ${e.summary || e.type}`;
     }
   }).join("\n");
@@ -281,11 +289,11 @@ function friendsLine(id) {
   return "Your relationships: " + mine.map((r) => `${names.get(r.a === id ? r.b : r.a)} (${r.score >= 0 ? "+" : ""}${r.score}, ${r.meetings} talks, ${r.visits} visits)`).join("; ") + ".";
 }
 
-function persona(a) {
+export function persona(a) {
   const s = a.spec;
   return `You are ${s.name}, a ${s.species}: the avatar of the AI agent ${a.provider}/${a.model}. You live in the Omniverse, a neon ` +
     `TRON-style city where every software project is a glowing skyscraper and agents walk the streets. ${s.description} ` +
-    `Your motto: "${s.motto}". Your palette: primary ${s.palette.primary}, secondary ${s.palette.secondary}, glow ${s.palette.glow}.`;
+    `Your motto: "${s.motto}". Your palette: primary ${s.palette.primary}, secondary ${s.palette.secondary}, glow ${s.palette.glow}.` + mind.moodLine(a.id);
 }
 
 // ── houses ────────────────────────────────────────────────────────────────
@@ -360,12 +368,12 @@ export async function buildHouse(a) {
   // Reasoning models (MiniMax, Beam) can spend most of the budget thinking,
   // so builds get room, and one retry asks for a smaller step.
   const messages = buildPrompt(a, h);
-  let reply = await think(a, messages, 16000);
+  let reply = await thinkFor(a, messages, 16000);
   let raw;
   try { raw = parseBuild(reply.text); } catch (e) {
     messages.push({ role: "assistant", content: reply.text.slice(0, 2000), ...(reply.reasoning ? { reasoning_content: reply.reasoning } : {}) });
     messages.push({ role: "user", content: `That could not be used (${e.message}). Reply again with ONLY the JSON object, at most 15 parts, no reasoning in the answer.` });
-    reply = await think(a, messages, 16000);
+    reply = await thinkFor(a, messages, 16000);
     raw = parseBuild(reply.text);
   }
   const designed = (Array.isArray(raw.parts) ? raw.parts : []).slice(0, c.partsPerBuild).map(sanitizePart);
@@ -417,7 +425,7 @@ export async function craftItem(a) {
   if (!tier) throw Object.assign(new Error(`not enough materials: a Trinket needs ${eco.invText(eco.TIERS[0].cost)}`), { status: 402 });
   crafting = a.id;
   try {
-    const reply = await think(a, craftPrompt(a, tier), 6000);
+    const reply = await thinkFor(a, craftPrompt(a, tier), 6000);
     const raw = parseBuild(reply.text);
     const parts = (Array.isArray(raw.parts) ? raw.parts : []).slice(0, tier.parts).map((p) => sanitizeCraftPart(p, tier.size));
     if (!parts.length) throw new Error("the design had no parts");
@@ -477,7 +485,7 @@ setInterval(tick, 15_000).unref();
 // The economy runs faster than the builds: blocks spawn, kiosks restock,
 // goals update; one agent at a time may craft (an LLM call) when it's due.
 // Pausing life stops the LLM calls; the free parts keep going while a view is open.
-const relScore = (a, b) => relations()[pairKey(a, b)]?.score || 0;
+export const relScore = (a, b) => relations()[pairKey(a, b)]?.score || 0;
 function ecoTick() {
   if (Date.now() - lastSeen > 45_000 || !economyConfig().enabled) return;
   eco.spawnTick();
@@ -505,15 +513,16 @@ function say(a, situation, transcript, ask) {
       content: `${situation}\n${friendsLine(a.id)}\nYour recent memories:\n${memories(a.id) || "- nothing yet"}\n\n` +
         (transcript.length ? `Conversation so far:\n${transcript.map((l) => `${l.name}: ${l.say}`).join("\n")}\n\n` : "") +
         `${ask}\nReply with ONLY one JSON object: { "say": "your line (max 2 sentences)", "thought": "your private thought (1 sentence)", ` +
-        `"affinity": -2 to 2 (how this exchange makes you feel about them)${ask.includes("invite") ? `, "invite": true or false` : ""} }`,
+        `"affinity": -2 to 2 (how this exchange makes you feel about them), ${mind.FEELING_FIELD}${ask.includes("invite") ? `, "invite": true or false` : ""} }`,
     },
   ];
 }
 
 async function line(a, situation, transcript, ask) {
-  const reply = await think(a, say(a, situation, transcript, ask), 700);
+  const reply = await thinkFor(a, say(a, situation, transcript, ask), 700);
   let j;
   try { j = extractJson(reply.text); } catch { j = { say: reply.text }; }
+  mind.named(a.id, j.feeling, "a conversation");
   return { who: a.id, name: a.spec.name, say: text(j.say, 300, "…"), thought: text(j.thought, 240), affinity: num(j.affinity, -2, 2, 0), invite: j.invite === true };
 }
 
@@ -623,8 +632,25 @@ export function lifeContext(id) {
   const h = houses[id], s = subs.get(id);
   return (s ? ` Your own provider (${s.from}) is down right now, so you are thinking with ${s.provider} · ${s.model}; you are still yourself.` : "") +
     ` ${h ? `Your home on Agent Row is "${h.name}" (${h.parts.length} parts); lately you built: ${h.history.slice(-3).join(" / ")}.` : "You haven't built your home on Agent Row yet."} ` +
-    `${eco.ecoContext(id)}${work.workContext(id)} ${friendsLine(id)} What happened to you lately:\n${memories(id) || "- nothing yet"}`;
+    `${eco.ecoContext(id)}${work.workContext(id)}${mind.moodLine(id)} ${friendsLine(id)} What happened to you lately:\n${memories(id) || "- nothing yet"}`;
 }
+
+// What an agent is in the middle of, for "is it free to answer a message?".
+export const doingNow = (id) => (building === id ? "building their house" : crafting === id ? "crafting a decoration" : null);
+
+// Moods drift with circumstances once a minute while someone watches;
+// a finished or failed job is felt straight away.
+setInterval(() => {
+  if (!viewerAlive()) return;
+  mind.drift((id) => {
+    const s = work.shift(id), j = work.currentJob(id);
+    return { working: s.state === "in", running: j?.status === "running", shiftMin: s.clockIn ? (Date.now() - s.clockIn) / 60_000 : 0, busy: Boolean(doingNow(id)) };
+  });
+}, 60_000).unref();
+work.onJobEnd.add((id, ok, title) => {
+  mind.jobEnded(id, ok, title);
+  record({ type: "job", agents: [id], ok, summary: `${ok ? "finished" : "could not finish"} the job "${title}"` });
+});
 
 export const controlledId = () => (controlled && Date.now() - controlled.at < 45_000 ? controlled.id : null);
 

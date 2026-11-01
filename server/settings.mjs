@@ -25,6 +25,11 @@ export const LIFE = {
   journalKeep: [20000, 2000, 500000],
   // Keep what you say to agents in the journal (secrets are always scrubbed).
   recordVisitorChat: [true],
+  // Inner life: diaries and hobby games (each entry or game is an LLM call).
+  diaries: [true],
+  diaryEveryMin: [60, 5, 1440],
+  hobbies: [true],
+  hobbyEveryMin: [120, 10, 1440],
 };
 export const ECONOMY = {
   enabled: [true],

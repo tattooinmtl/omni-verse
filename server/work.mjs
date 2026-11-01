@@ -81,6 +81,9 @@ export function shift(id) {
 }
 
 const busyJob = (id) => st.jobs.find((j) => j.agent === id && (j.status === "assigned" || j.status === "running"));
+export const currentJob = busyJob;
+// Called with (agent id, ok, title) when a job ends; life.mjs turns it into feelings.
+export const onJobEnd = new Set();
 const openJobs = () => st.jobs.filter((j) => j.status === "open");
 
 // Desks per building: the client builds the same number of computer blocks.
@@ -395,6 +398,7 @@ function finish(j, a) {
     refund(j);
     post(a.id, `could not finish "${j.title}": ${String(j.result).slice(0, 160)}`, { kind: "job", job: j.id });
   }
+  for (const f of onJobEnd) { try { f(a.id, j.status === "done", j.title); } catch (e) { console.error("work: job hook failed:", e.message); } }
   bump();
 }
 

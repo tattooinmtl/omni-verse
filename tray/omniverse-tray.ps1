@@ -51,6 +51,9 @@ $script:own = $false      # false when a server was already running before the t
 $script:exiting = $false
 $script:crashes = @()     # when it crashed lately, to give up on a crash loop
 $script:opened = $NoBrowser.IsPresent
+$script:inboxBalloon = $false # the balloon showing is about the inbox
+$script:inboxTick = 0
+$script:unread = 0
 
 function Test-Up {
   try {
@@ -110,12 +113,12 @@ $pauseItem = Add-Item 'Pause the simulation' {
   } catch { $tray.ShowBalloonTip(3000, 'Omniverse', 'The server is not answering yet.', 'Warning') }
 }
 [void](Add-Item 'Restart the server' {
-  if (-not $script:own) { $tray.ShowBalloonTip(4000, 'Omniverse', 'This server was started outside the tray; restart it there.', 'Info'); return }
+  if (-not $script:own) { $script:inboxBalloon = $false; $tray.ShowBalloonTip(4000, 'Omniverse', 'This server was started outside the tray; restart it there.', 'Info'); return }
   $script:exiting = $true
   Stop-Server
   $script:exiting = $false
   Start-Server
-  $tray.ShowBalloonTip(2000, 'Omniverse', 'Server restarted.', 'Info')
+  $script:inboxBalloon = $false; $tray.ShowBalloonTip(2000, 'Omniverse', 'Server restarted.', 'Info')
 })
 [void](Add-Item 'Show the server log' { if (Test-Path $Log) { Start-Process notepad.exe $Log } })
 [void](Add-Item 'Open the app folder' { Start-Process explorer.exe $Root })
@@ -147,14 +150,16 @@ $menu.add_Opening({
 })
 $tray.ContextMenuStrip = $menu
 $tray.add_MouseClick({ if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) { Start-Process $Url } })
+# A balloon about an agent's answer opens the city on the inbox.
+$tray.add_BalloonTipClicked({ if ($script:inboxBalloon) { Start-Process "$Url/#inbox" } })
 $tray.Visible = $true
 
 # --- start, then watch ---------------------------------------------------------
 if (Test-Up) {
-  $tray.ShowBalloonTip(4000, 'Omniverse', "Already running on port $Port (started outside the tray). The tray can open it but won't stop it.", 'Info')
+  $script:inboxBalloon = $false; $tray.ShowBalloonTip(4000, 'Omniverse', "Already running on port $Port (started outside the tray). The tray can open it but won't stop it.", 'Info')
 } else {
   Start-Server
-  $tray.ShowBalloonTip(3000, 'Omniverse', 'Running in the tray. Right-click the diamond for the menu; Exit stops it.', 'Info')
+  $script:inboxBalloon = $false; $tray.ShowBalloonTip(3000, 'Omniverse', 'Running in the tray. Right-click the diamond for the menu; Exit stops it.', 'Info')
 }
 
 $timer = New-Object System.Windows.Forms.Timer
@@ -169,15 +174,36 @@ $timer.add_Tick({
     $script:crashes = @($script:crashes | Where-Object { ($now - $_).TotalMinutes -lt 2 }) + $now
     if ($script:crashes.Count -le 3) {
       Start-Server
-      $tray.ShowBalloonTip(3000, 'Omniverse', 'The server stopped unexpectedly and was restarted.', 'Warning')
+      $script:inboxBalloon = $false; $tray.ShowBalloonTip(3000, 'Omniverse', 'The server stopped unexpectedly and was restarted.', 'Warning')
     } else {
       $script:proc = $null
-      $tray.ShowBalloonTip(6000, 'Omniverse', 'The server keeps crashing. See "Show the server log", then use "Restart the server".', 'Error')
+      $script:inboxBalloon = $false; $tray.ShowBalloonTip(6000, 'Omniverse', 'The server keeps crashing. See "Show the server log", then use "Restart the server".', 'Error')
     }
+  }
+  # Every 10 s: answers from agents that no open page has shown yet.
+  # Only the server this tray started knows our token, so only it answers.
+  $script:inboxTick++
+  if ($up -and $script:own -and $script:inboxTick % 5 -eq 0) {
+    try {
+      $r = Invoke-RestMethod -Uri "$Url/api/control/inbox" -Headers @{ 'x-omniverse-control' = $Token } -TimeoutSec 3
+      $script:unread = [int]$r.unread
+      $items = @($r.items)
+      if ($items.Count -eq 1) {
+        $msg = [string]$items[0].text
+        if ($msg.Length -gt 200) { $msg = $msg.Substring(0, 200) + '...' }
+        $script:inboxBalloon = $true
+        $tray.ShowBalloonTip(8000, "$($items[0].name) answered you", $msg, 'Info')
+      } elseif ($items.Count -gt 1) {
+        $who = ($items | ForEach-Object { $_.name } | Select-Object -Unique) -join ', '
+        $script:inboxBalloon = $true
+        $tray.ShowBalloonTip(8000, "$($items.Count) new answers in your inbox", "From $who. Click to open the inbox.", 'Info')
+      }
+    } catch { }
   }
   $state = if ($up) { "running on :$Port" } elseif ($script:proc) { 'starting' } else { 'stopped' }
   if (Test-Path $Paused) { $state += ', paused' }
-  $tray.Text = "Omniverse - $state"
+  if ($script:unread -gt 0) { $state += ", $($script:unread) unread" }
+  $tray.Text = ("Omniverse - $state").Substring(0, [Math]::Min(63, ("Omniverse - $state").Length))
 })
 $timer.Start()
 

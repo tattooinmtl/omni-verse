@@ -16,6 +16,10 @@ import { isSecretPath, redact, scrubSecrets } from "./security.mjs";
 import { getSettings, lifeConfig, saveProjects, saveSettings } from "./settings.mjs";
 import * as eco from "./economy.mjs";
 import * as cloud from "./cloud.mjs";
+import * as mind from "./mind.mjs";
+import * as diary from "./diary.mjs";
+import * as hobby from "./hobby.mjs";
+import * as inbox from "./inbox.mjs";
 
 const PORT = Number(process.env.OMNIVERSE_PORT || localEnv().OMNIVERSE_PORT || 4777);
 const PUBLIC = path.join(APP_ROOT, "public");
@@ -202,6 +206,9 @@ async function api(req, res, url) {
       // Chats spend the same hourly budget as the simulation and stop when it's paused.
       if (isPaused()) return send(res, 423, { error: "The simulation is paused, so agents can't talk right now. Resume it from the mode select." });
       if (budgetLeft() <= 0) return send(res, 429, { error: "The hourly LLM budget is used up. Raise it in Settings → Simulation or try again later." });
+      // At a running job, writing a game or its diary: the page sends it to the inbox instead.
+      const busy = inbox.busyReason(avatar.id);
+      if (busy && !["talking with a visitor", "in a conversation on the street"].includes(busy) && !/^resting/.test(busy)) return send(res, 200, { busy });
       const history = (Array.isArray(messages) ? messages : []).slice(-20)
         .filter((m) => m && ["user", "assistant"].includes(m.role))
         .map((m) => {
@@ -222,7 +229,40 @@ async function api(req, res, url) {
       return send(res, 200, { text: reply.text, reasoning: reply.reasoning });
     }
     case "GET /api/life/state":
-      return send(res, 200, lifeState(Number(url.searchParams.get("since")) || 0, session.avatar || ""));
+      // Moods and who is free to answer ride along, for nameplates and the agents list.
+      return send(res, 200, { ...lifeState(Number(url.searchParams.get("since")) || 0, session.avatar || ""), minds: mind.briefs(), busy: inbox.busyMap() });
+    // An agent's inner life: its state of mind, its diary, its hobby games.
+    case "GET /api/mind":
+      return send(res, 200, { ...mind.detail(agentOf(String(url.searchParams.get("id") || "")).id), busy: inbox.busyReason(String(url.searchParams.get("id"))) });
+    case "GET /api/diary":
+      return send(res, 200, diary.read(agentOf(String(url.searchParams.get("id") || "")).id, {
+        before: Number(url.searchParams.get("before")) || Infinity, limit: Number(url.searchParams.get("limit")) || 30,
+      }));
+    case "GET /api/hobby": {
+      const id = String(url.searchParams.get("agent") || "");
+      return send(res, 200, { games: hobby.games(id), ...(id ? hobby.ledger(agentOf(id).id) : {}) });
+    }
+    case "GET /api/hobby/play": {
+      // A game is code an agent wrote: it runs sandboxed, in an opaque origin
+      // with no network, so it can't reach this API or anything else.
+      const page = hobby.html(String(url.searchParams.get("id") || ""));
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff",
+        "content-security-policy": "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:",
+      });
+      return res.end(page);
+    }
+    // Your inbox: messages to agents, answered now or when they're free.
+    case "GET /api/inbox":
+      return send(res, 200, inbox.list());
+    case "GET /api/inbox/fresh":
+      return send(res, 200, inbox.fresh());
+    case "POST /api/inbox/send": {
+      const b = await readBody(req);
+      return send(res, 200, await inbox.send(agentOf(String(b.agent || "")).id, b.text));
+    }
+    case "POST /api/inbox/read":
+      return send(res, 200, inbox.markRead(agentOf(String((await readBody(req)).agent || "")).id));
     case "GET /api/life/house":
       return send(res, 200, house(String(url.searchParams.get("id") || "")) || { parts: [] });
     case "GET /api/life/graph":
@@ -410,7 +450,7 @@ async function serveStatic(res, url) {
 // come here, so the economy and the work system both get to save.
 function shutdown(why) {
   console.log(`shutting down (${why})`);
-  for (const f of [eco.flush, work.flush]) { try { f(); } catch (e) { console.error("save on exit failed:", e.message); } }
+  for (const f of [eco.flush, work.flush, mind.flush, diary.flush, hobby.flush, inbox.flush]) { try { f(); } catch (e) { console.error("save on exit failed:", e.message); } }
   process.exit(0);
 }
 for (const sig of ["SIGINT", "SIGTERM", "SIGBREAK"]) process.once(sig, () => shutdown(sig));
@@ -422,6 +462,8 @@ function control(req, res, url) {
   const given = String(req.headers["x-omniverse-control"] || "");
   const ok = CONTROL.length >= 32 && given.length === CONTROL.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(CONTROL));
   if (!ok) return send(res, 403, { error: "forbidden" });
+  // The tray asks for answers no open page has shown yet, to pop a balloon.
+  if (req.method === "GET" && url.pathname === "/api/control/inbox") return send(res, 200, inbox.fresh({ minAgeMs: 8000 }));
   if (req.method === "POST" && url.pathname === "/api/control/shutdown") {
     send(res, 200, { stopping: true });
     setTimeout(() => shutdown("tray"), 100);
